@@ -272,9 +272,6 @@ function displayRestaurants(restaurants) {
                     <button onclick="sortByName()" class="filter-btn">
                         <i class="fas fa-sort-alpha-down"></i> Sort by Name
                     </button>
-                    <button onclick="filterByCuisine()" class="filter-btn">
-                        <i class="fas fa-utensil-spoon"></i> Filter by Cuisine
-                    </button>
                 </div>
             </div>
             
