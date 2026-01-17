@@ -592,30 +592,30 @@ input[type="time"] {
 /* ===== FIX RESTAURANT ACTION BUTTON SPACING ===== */
 
 .restaurant-actions {
-    display: block; /* avoid flex bugs */
     margin-top: 16px;
 }
 
-.restaurant-actions button {
-    display: block;
-    width: 100%;
-    margin-bottom: 14px;   /* REAL GAP */
+.restaurant-actions .action-item {
+    margin-bottom: 14px;
 }
 
-/* remove gap after last button */
-.restaurant-actions button:last-child {
+.restaurant-actions .action-item:last-child {
     margin-bottom: 0;
 }
+
+/* Desktop only */
 @media (min-width: 768px) {
     .restaurant-actions {
         display: flex;
         gap: 12px;
     }
 
-    .restaurant-actions button {
+    .restaurant-actions .action-item {
         margin-bottom: 0;
+        flex: 1;
     }
 }
+
 
 /* Custom scrollbar for webview */
 ::-webkit-scrollbar {
