@@ -9,11 +9,6 @@
 html {
     font-size: 16px;
 }
-#restaurants-container {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-}
 
 body {
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -577,9 +572,15 @@ button:focus:not(:active)::after {
         opacity: 0;
     }
 }
+#restaurants-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
 
 /* Swipe gestures support */
 .restaurant-card {
+    margin-top: 28px;
     user-select: none;
 }
 
@@ -587,6 +588,33 @@ button:focus:not(:active)::after {
 input[type="date"],
 input[type="time"] {
     min-height: 3.5rem;
+}
+/* ===== FIX RESTAURANT ACTION BUTTON SPACING ===== */
+
+.restaurant-actions {
+    display: block; /* avoid flex bugs */
+    margin-top: 16px;
+}
+
+.restaurant-actions button {
+    display: block;
+    width: 100%;
+    margin-bottom: 14px;   /* REAL GAP */
+}
+
+/* remove gap after last button */
+.restaurant-actions button:last-child {
+    margin-bottom: 0;
+}
+@media (min-width: 768px) {
+    .restaurant-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .restaurant-actions button {
+        margin-bottom: 0;
+    }
 }
 
 /* Custom scrollbar for webview */
