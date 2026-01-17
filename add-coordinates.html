@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Coordinates to Restaurants</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .restaurant { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .success { background: #d4edda; padding: 10px; border-radius: 5px; }
+        .error { background: #f8d7da; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Add Coordinates to Restaurants</h1>
+    <p>This tool will help you add latitude/longitude coordinates to your existing restaurants based on their addresses.</p>
+    
+    <div id="restaurants-list"></div>
+    
+    <script type="module">
+        import { auth, db } from './js/firebase.js';
+        import { collection, getDocs, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        async function geocodeAddress(address) {
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+                );
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    return {
+                        lat: parseFloat(data[0].lat),
+                        lng: parseFloat(data[0].lon)
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error("Geocoding error:", error);
+                return null;
+            }
+        }
+        
+        async function loadRestaurants() {
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    document.getElementById('restaurants-list').innerHTML = '<p>Please login first.</p>';
+                    return;
+                }
+                
+                const querySnapshot = await getDocs(collection(db, "restaurants"));
+                const container = document.getElementById('restaurants-list');
+                container.innerHTML = '<h3>Your Restaurants</h3>';
+                
+                querySnapshot.forEach(async (docSnap) => {
+                    const restaurant = docSnap.data();
+                    const div = document.createElement('div');
+                    div.className = 'restaurant';
+                    
+                    let status = '';
+                    if (restaurant.latitude && restaurant.longitude) {
+                        status = `<span style="color: green;">✅ Has coordinates</span>`;
+                    } else if (restaurant.address) {
+                        status = `<span style="color: orange;">⚠️ Needs coordinates</span>`;
+                    } else {
+                        status = `<span style="color: red;">❌ No address</span>`;
+                    }
+                    
+                    div.innerHTML = `
+                        <h4>${restaurant.name}</h4>
+                        <p><strong>Address:</strong> ${restaurant.address || 'No address'}</p>
+                        <p><strong>Status:</strong> ${status}</p>
+                        ${restaurant.address && !restaurant.latitude ? `
+                            <button onclick="addCoordinates('${docSnap.id}', '${restaurant.address}')">
+                                Add Coordinates
+                            </button>
+                        ` : ''}
+                    `;
+                    
+                    container.appendChild(div);
+                });
+                
+            } catch (error) {
+                console.error("Error loading restaurants:", error);
+                document.getElementById('restaurants-list').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        window.addCoordinates = async function(restaurantId, address) {
+            try {
+                const coords = await geocodeAddress(address);
+                if (coords) {
+                    await updateDoc(doc(db, "restaurants", restaurantId), {
+                        latitude: coords.lat,
+                        longitude: coords.lng,
+                        hasLocation: true,
+                        updatedAt: serverTimestamp()
+                    });
+                    
+                    alert(`✅ Coordinates added: ${coords.lat}, ${coords.lng}`);
+                    loadRestaurants(); // Reload the list
+                } else {
+                    alert("❌ Could not get coordinates for this address.");
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        };
+        
+        // Check auth
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                loadRestaurants();
+            } else {
+                document.getElementById('restaurants-list').innerHTML = '<p>Please login to the main app first.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

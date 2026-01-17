@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Dashboard - TableBook</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="owner.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="owner-restaurants.html"><i class="fas fa-utensils"></i> My Restaurants</a>
+            <a href="index.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+        
+        <h2><i class="fas fa-user-tie"></i> Restaurant Owner Dashboard</h2>
+        
+        
+        
+        <!-- Bookings Section -->
+        <div id="bookings-container">
+            <h3>Recent Bookings</h3>
+            <div id="bookings"></div>
+        </div>
+        
+        <!-- Restaurants List -->
+        <div id="my-restaurants">
+            <h3>My Restaurants</h3>
+            <div id="restaurants-list"></div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/owner.js"></script>
+</body>
+</html>

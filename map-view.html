@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Map - TableBook</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .map-container {
+            position: relative;
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 300px;
+        }
+        
+        .restaurant-marker {
+            background: #e17055;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(225, 112, 85, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .restaurant-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .restaurant-list-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .restaurant-list-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .restaurant-list-item.active {
+            background: #fff5f2;
+            border-left: 3px solid #e17055;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="client.html"><i class="fas fa-utensils"></i> Restaurants</a>
+            <a href="map-view.html" class="active"><i class="fas fa-map"></i> Map View</a>
+            <a href="my-bookings.html"><i class="fas fa-calendar-check"></i> My Bookings</a>
+            <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+        
+        <h2><i class="fas fa-map-marker-alt"></i> Restaurant Map</h2>
+        <p style="text-align: center; color: #636e72; margin-bottom: 20px;">
+            Find restaurants near you on the map
+        </p>
+        
+        <div class="map-container">
+            <div id="map"></div>
+            
+            <div class="map-controls">
+                <h4 style="margin: 0 0 10px 0;">Restaurants</h4>
+                <div style="margin-bottom: 10px;">
+                    <button onclick="centerOnUser()" style="width: 100%; margin-bottom: 5px;">
+                        <i class="fas fa-location-arrow"></i> Center on Me
+                    </button>
+                    <button onclick="showAllMarkers()" style="width: 100%; background: #dfe6e9; color: #2d3436;">
+                        <i class="fas fa-globe"></i> Show All
+                    </button>
+                </div>
+                
+                <div id="restaurant-list" class="restaurant-list">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading restaurants...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="client.html" style="color: #e17055; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Back to List View
+            </a>
+        </div>
+    </div>
+
+    <!-- Load Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script type="module" src="./js/map-view.js"></script>
+</body>
+</html>
