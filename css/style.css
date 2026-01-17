@@ -590,32 +590,34 @@ input[type="time"] {
     min-height: 3.5rem;
 }
 /* ===== FIX RESTAURANT ACTION BUTTON SPACING ===== */
-
+.booking-card {
+    margin-top: 16px;
+}
 .restaurant-actions {
+    display: block; /* avoid flex bugs */
     margin-top: 16px;
 }
 
-.restaurant-actions .action-item {
-    margin-bottom: 14px;
+.restaurant-actions button {
+    display: block;
+    width: 100%;
+    margin-bottom: 14px;   /* REAL GAP */
 }
 
-.restaurant-actions .action-item:last-child {
+/* remove gap after last button */
+.restaurant-actions button:last-child {
     margin-bottom: 0;
 }
-
-/* Desktop only */
 @media (min-width: 768px) {
     .restaurant-actions {
         display: flex;
         gap: 12px;
     }
 
-    .restaurant-actions .action-item {
+    .restaurant-actions button {
         margin-bottom: 0;
-        flex: 1;
     }
 }
-
 
 /* Custom scrollbar for webview */
 ::-webkit-scrollbar {
