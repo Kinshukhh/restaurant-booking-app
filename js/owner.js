@@ -118,14 +118,20 @@ async function loadMyRestaurants() {
                     <span><i class="fas fa-calendar"></i> ${restaurant.slots?.length || 0} slots</span>
                     <span><i class="fas fa-users"></i> Capacity: ${restaurant.capacity || 50}</span>
                 </div>
-                <div style="margin-top: 15px;">
-                    <button onclick="editRestaurantOwner('${restaurant.id}')" class="edit-btn" style="margin-right: 10px;">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button onclick="deleteRestaurantOwner('${restaurant.id}')" class="delete-btn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+                <div class="restaurant-actions">
+    <div class="action-item">
+        <button onclick="editRestaurantOwner('${restaurant.id}')" class="edit-btn">
+            <i class="fas fa-edit"></i> Edit
+        </button>
+    </div>
+
+    <div class="action-item">
+        <button onclick="deleteRestaurantOwner('${restaurant.id}')" class="delete-btn">
+            <i class="fas fa-trash"></i> Delete
+        </button>
+    </div>
+</div>
+
             `;
             container.appendChild(card);
         });
