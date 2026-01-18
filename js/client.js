@@ -210,7 +210,7 @@ addToastStyles();
 // Confirmation modal function
 window.showConfirmation = function(options) {
     return new Promise((resolve) => {
-        const modal = document.createElement('div');
+        const modal = document.createElement('booking-modal');
         modal.className = 'confirmation-modal';
         
         modal.innerHTML = `
@@ -771,7 +771,7 @@ window.filterByCuisine = async function() {
     }
     
     // Create a custom prompt for cuisine selection
-    const modal = document.createElement('div');
+    const modal = document.createElement('booking-modal');
     modal.className = 'confirmation-modal';
     modal.innerHTML = `
         <div class="confirmation-content" style="max-width: 500px;">
@@ -928,7 +928,7 @@ window.updateLocation = async function() {
         }
     } else {
         // User cancelled or wants to enter address
-        const modal = document.createElement('div');
+        const modal = document.createElement('booking-modal');
         modal.className = 'confirmation-modal';
         modal.innerHTML = `
             <div class="confirmation-content">
