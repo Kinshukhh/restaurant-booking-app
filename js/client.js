@@ -9,261 +9,273 @@ let currentRestaurant = null;
 let userLocation = null;
 let restaurantsData = [];
 
-// =========================
-// Toast & Confirmation Styles
-// =========================
+// Add toast styles
 function addToastStyles() {
-    if (document.querySelector('#toast-styles')) return;
-
-    const style = document.createElement('style');
-    style.id = 'toast-styles';
-    style.textContent = `
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-            z-index: 10000;
-            border: 1px solid;
-            max-width: 400px;
-            word-break: break-word;
-            pointer-events: none;
-            animation: fadeSlideUp 0.3s ease-out;
-        }
-/* ===== MODAL OVERLAY ===== */
-#booking-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    if (!document.querySelector('#toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+                z-index: 10000;
+                animation: fadeSlideUp 0.3s ease-out;
+                border: 1px solid;
+                max-width: 400px;
+                word-break: break-word;
+            }
+            
+            .toast-success {
+                background: var(--success-bg, rgba(212, 237, 218, 0.95));
+                color: var(--success-color, #155724);
+                border-color: var(--success-border, rgba(195, 230, 203, 0.5));
+            }
+            
+            .toast-error {
+                background: var(--error-bg, rgba(248, 215, 218, 0.95));
+                color: var(--error-color, #721c24);
+                border-color: var(--error-border, rgba(245, 198, 203, 0.5));
+            }
+            
+            .toast-warning {
+                background: var(--warning-bg, rgba(255, 243, 205, 0.95));
+                color: var(--warning-color, #856404);
+                border-color: var(--warning-border, rgba(255, 238, 186, 0.5));
+            }
+            
+            .toast-info {
+                background: var(--info-bg, rgba(209, 236, 241, 0.95));
+                color: var(--info-color, #0c5460);
+                border-color: var(--info-border, rgba(190, 229, 235, 0.5));
+            }
+            
+            @keyframes fadeSlideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            
+            /* Dark mode adjustments */
+            @media (prefers-color-scheme: dark) {
+                .toast-success {
+                    background: rgba(212, 237, 218, 0.2);
+                    color: #d4edda;
+                }
+                
+                .toast-error {
+                    background: rgba(248, 215, 218, 0.2);
+                    color: #f8d7da;
+                }
+                
+                .toast-warning {
+                    background: rgba(255, 243, 205, 0.2);
+                    color: #fff3cd;
+                }
+                
+                .toast-info {
+                    background: rgba(209, 236, 241, 0.2);
+                    color: #d1ecf1;
+                }
+            }
+            
+            /* Confirmation modal styles */
+            .confirmation-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10001;
+                animation: fadeIn 0.3s ease-out;
+            }
+            
+            .confirmation-content {
+                background: var(--modal-bg, white);
+                padding: 2rem;
+                border-radius: 20px;
+                max-width: 400px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                animation: slideUp 0.3s ease-out;
+            }
+            
+            .confirmation-header {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .confirmation-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+            }
+            
+            .confirmation-icon.warning {
+                background: linear-gradient(135deg, #ffc107, #ff9800);
+                color: #000;
+            }
+            
+            .confirmation-icon.info {
+                background: linear-gradient(135deg, #17a2b8, #138496);
+                color: white;
+            }
+            
+            .confirmation-title {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: var(--text-primary, #2d3436);
+                margin: 0;
+            }
+            
+            .confirmation-message {
+                color: var(--text-secondary, #636e72);
+                margin-bottom: 2rem;
+                line-height: 1.5;
+            }
+            
+            .confirmation-buttons {
+                display: flex;
+                gap: 1rem;
+                justify-content: flex-end;
+            }
+            
+            .confirmation-buttons button {
+                padding: 0.75rem 1.5rem;
+                border-radius: 12px;
+                border: none;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .confirmation-cancel {
+                background: var(--cancel-bg, #f5f5f5);
+                color: var(--cancel-color, #666);
+            }
+            
+            .confirmation-cancel:hover {
+                background: var(--cancel-hover, #e0e0e0);
+            }
+            
+            .confirmation-confirm {
+                background: linear-gradient(135deg, var(--accent-color, #e17055), var(--accent-dark, #d63031));
+                color: white;
+            }
+            
+            .confirmation-confirm:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
-#booking-modal.hidden {
-  display: none;
-}
-
-/* ===== MODAL BOX ===== */
-#booking-modal .modal-content {
-  background: #fff;
-  width: 90%;
-  max-width: 500px;
-
-  max-height: 90vh;      /* 🔥 KEY */
-  overflow-y: auto;      /* 🔥 KEY */
-
-  border-radius: 16px;
-  padding: 1.5rem;
-}
-
-/* Header */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Body spacing */
-.modal-body .form-group {
-  margin-bottom: 1rem;
-}
-
-/* Footer */
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-/* Lock background scroll */
-body.modal-open {
-  overflow: hidden;
-}
-
-        .toast-success {
-            background: rgba(212,237,218,.95);
-            color: #155724;
-            border-color: rgba(195,230,203,.5);
-        }
-        .toast-error {
-            background: rgba(248,215,218,.95);
-            color: #721c24;
-            border-color: rgba(245,198,203,.5);
-        }
-        .toast-warning {
-            background: rgba(255,243,205,.95);
-            color: #856404;
-            border-color: rgba(255,238,186,.5);
-        }
-        .toast-info {
-            background: rgba(209,236,241,.95);
-            color: #0c5460;
-            border-color: rgba(190,229,235,.5);
-        }
-
-        .confirmation-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10001;
-        }
-
-        .confirmation-content {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 20px;
-            max-width: 400px;
-            width: 90%;
-            animation: slideUp .3s ease;
-        }
-
-        .confirmation-header {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .confirmation-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .confirmation-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-
-        body.modal-open {
-            overflow: hidden;
-        }
-
-        @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
+// Initialize toast styles
 addToastStyles();
 
-
-// =========================
-// Toast
-// =========================
-window.showToast = function (message, type = "success", duration = 3000) {
-    document.querySelector('.toast')?.remove();
-
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-
-    const icon = document.createElement('i');
-    icon.className = `fas ${
-        {
-            success: 'fa-check-circle',
-            error: 'fa-exclamation-circle',
-            warning: 'fa-exclamation-triangle',
-            info: 'fa-info-circle'
-        }[type] || 'fa-info-circle'
-    }`;
-
-    const text = document.createElement('span');
-    text.textContent = message; // ✅ SAFE
-
-    toast.append(icon, text);
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, duration);
-};
-
-
-// =========================
-// Confirmation Modal
-// =========================
-window.showConfirmation = function ({
-    title = "Confirmation Required",
-    message = "Are you sure?",
-    confirmText = "Confirm",
-    cancelText = "Cancel",
-    type = "warning",
-    icon = "fa-exclamation-triangle"
-} = {}) {
-    return new Promise(resolve => {
-        document.body.classList.add('modal-open');
-
+// Confirmation modal function
+window.showConfirmation = function(options) {
+    return new Promise((resolve) => {
         const modal = document.createElement('div');
         modal.className = 'confirmation-modal';
-
-        const content = document.createElement('div');
-        content.className = 'confirmation-content';
-
-        const header = document.createElement('div');
-        header.className = 'confirmation-header';
-
-        const iconBox = document.createElement('div');
-        iconBox.className = `confirmation-icon ${type}`;
-        iconBox.innerHTML = `<i class="fas ${icon}"></i>`;
-
-        const titleEl = document.createElement('h3');
-        titleEl.textContent = title;
-
-        header.append(iconBox, titleEl);
-
-        const msg = document.createElement('p');
-        msg.textContent = message;
-
-        const buttons = document.createElement('div');
-        buttons.className = 'confirmation-buttons';
-
-        const cancelBtn = document.createElement('button');
-        cancelBtn.textContent = cancelText;
-
-        const confirmBtn = document.createElement('button');
-        confirmBtn.textContent = confirmText;
-        confirmBtn.className = 'confirmation-confirm';
-
-        cancelBtn.onclick = () => close(false);
-        confirmBtn.onclick = () => close(true);
-
-        buttons.append(cancelBtn, confirmBtn);
-        content.append(header, msg, buttons);
-        modal.appendChild(content);
+        
+        modal.innerHTML = `
+            <div class="confirmation-content">
+                <div class="confirmation-header">
+                    <div class="confirmation-icon ${options.type || 'warning'}">
+                        <i class="fas ${options.icon || 'fa-exclamation-triangle'}"></i>
+                    </div>
+                    <h3 class="confirmation-title">${options.title || 'Confirmation Required'}</h3>
+                </div>
+                <p class="confirmation-message">${options.message}</p>
+                <div class="confirmation-buttons">
+                    <button class="confirmation-cancel" onclick="handleConfirmation(false)">
+                        ${options.cancelText || 'Cancel'}
+                    </button>
+                    <button class="confirmation-confirm" onclick="handleConfirmation(true)">
+                        ${options.confirmText || 'Confirm'}
+                    </button>
+                </div>
+            </div>
+        `;
+        
         document.body.appendChild(modal);
-
-        function close(result) {
+        
+        // Store resolve function globally
+        window.handleConfirmation = function(result) {
             modal.remove();
-            document.body.classList.remove('modal-open');
+            delete window.handleConfirmation;
             resolve(result);
-        }
+        };
     });
 };
 
+// Toast notification function
+window.showToast = function(message, type = "success", duration = 3000) {
+    // Remove existing toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    // Map type to icon
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    
+    toast.innerHTML = `
+        <i class="fas ${icons[type] || 'fa-info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+};
 
 // Check authentication
 auth.onAuthStateChanged(async (user) => {
@@ -1107,163 +1119,152 @@ async function geocodeAddress(address) {
         return null;
     }
 }
-
 window.openBookingModal = async function(restaurantId) {
-    console.log("Opening booking modal for restaurant:", restaurantId);
-    currentRestaurant = restaurantId;
+  console.log("Opening booking modal for restaurant:", restaurantId);
+  currentRestaurant = restaurantId;
+  
+  try {
+    const restaurantDoc = await getDoc(doc(db, "restaurants", restaurantId));
     
-    try {
-        const restaurantDoc = await getDoc(doc(db, "restaurants", restaurantId));
-        
-        if (!restaurantDoc.exists()) {
-            showToast("Restaurant not found!", "error");
-            return;
-        }
-        
-        const restaurant = restaurantDoc.data();
-        
-        // Set modal title
-        document.getElementById("modal-title").textContent = `Book Table at ${restaurant.name}`;
-        
-        // Set minimum date to today
-        const today = new Date().toISOString().split('T')[0];
-        const dateInput = document.getElementById("booking-date");
-        dateInput.min = today;
-        dateInput.value = today;
-        
-        // Load time slots
-        const timeSelect = document.getElementById("booking-time");
-        timeSelect.innerHTML = "";
-        
-        if (restaurant.slots && restaurant.slots.length > 0) {
-            restaurant.slots.forEach(slot => {
-                const option = document.createElement("option");
-                option.value = slot;
-                option.textContent = slot;
-                timeSelect.appendChild(option);
-            });
-        } else {
-            // Default time slots
-            const defaultSlots = ["18:00-19:30", "19:30-21:00", "21:00-22:30"];
-            defaultSlots.forEach(slot => {
-                const option = document.createElement("option");
-                option.value = slot;
-                option.textContent = slot;
-                timeSelect.appendChild(option);
-            });
-        }
-        
-        // Show modal with animation
-        const modal = document.getElementById("booking-modal");
-        modal.classList.remove("hidden");
-        modal.style.animation = "fadeIn 0.3s ease-out";
-        
-    } catch (error) {
-        console.error("Error opening booking modal:", error);
-        showToast("Failed to open booking form. Please try again.", "error");
+    if (!restaurantDoc.exists()) {
+      showToast("Restaurant not found!");
+      return;
     }
+    
+    const restaurant = restaurantDoc.data();
+    
+    // Set modal title
+    document.getElementById("modal-title").textContent = `Book Table at ${restaurant.name}`;
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("booking-date").min = today;
+    document.getElementById("booking-date").value = today;
+    
+    // Load time slots
+    const timeSelect = document.getElementById("booking-time");
+    timeSelect.innerHTML = "";
+    
+    if (restaurant.slots && restaurant.slots.length > 0) {
+      restaurant.slots.forEach(slot => {
+        const option = document.createElement("option");
+        option.value = slot;
+        option.textContent = slot;
+        timeSelect.appendChild(option);
+      });
+    } else {
+      // Default time slots
+      const defaultSlots = ["18:00-19:30", "19:30-21:00", "21:00-22:30"];
+      defaultSlots.forEach(slot => {
+        const option = document.createElement("option");
+        option.value = slot;
+        option.textContent = slot;
+        timeSelect.appendChild(option);
+      });
+    }
+    
+    // Show modal
+    document.getElementById("booking-modal").classList.remove("hidden");
+    
+  } catch (error) {
+    console.error("Error opening booking modal:", error);
+    showToast("Failed to open booking form. Please try again.");
+  }
 };
 
 window.confirmBooking = async function() {
-    const date = document.getElementById("booking-date").value;
-    const time = document.getElementById("booking-time").value;
-    const guests = parseInt(document.getElementById("booking-guests").value);
-    const requests = document.getElementById("special-requests").value;
+  const date = document.getElementById("booking-date").value;
+  const time = document.getElementById("booking-time").value;
+  const guests = parseInt(document.getElementById("booking-guests").value);
+  const requests = document.getElementById("special-requests").value;
+  
+  if (!date || !time || !guests || guests < 1) {
+    showToast("Please fill in all required fields correctly.");
+    return;
+  }
+  
+  try {
+    const restaurantDoc = await getDoc(doc(db, "restaurants", currentRestaurant));
     
-    if (!date || !time || !guests || guests < 1 || guests > 20) {
-        showToast("Please fill in all required fields correctly (1-20 guests).", "error");
-        return;
+    if (!restaurantDoc.exists()) {
+      showToast("Restaurant not found!");
+      return;
     }
     
-    // Show loading state
-    const submitBtn = document.querySelector('#booking-modal .modal-buttons button:last-child');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booking...';
-    submitBtn.disabled = true;
+    const restaurant = restaurantDoc.data();
     
-    try {
-        const restaurantDoc = await getDoc(doc(db, "restaurants", currentRestaurant));
-        
-        if (!restaurantDoc.exists()) {
-            showToast("Restaurant not found!", "error");
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-            return;
-        }
-        
-        const restaurant = restaurantDoc.data();
-        
-        // Create booking
-        await addDoc(collection(db, "bookings"), {
-            restaurantId: currentRestaurant,
-            restaurantName: restaurant.name,
-            ownerId: restaurant.ownerId,
-            userId: auth.currentUser.uid,
-            userEmail: auth.currentUser.email,
-            date: date,
-            time: time,
-            guests: guests,
-            specialRequests: requests,
-            status: "PENDING",
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        });
-        
-        closeModal();
-        showToast("Booking request submitted successfully! The restaurant owner will confirm your booking soon.", "success", 5000);
-        
-    } catch (error) {
-        console.error("Error creating booking:", error);
-        showToast("Failed to create booking. Please try again.", "error");
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }
+    // Create booking
+    await addDoc(collection(db, "bookings"), {
+      restaurantId: currentRestaurant,
+      restaurantName: restaurant.name,
+      ownerId: restaurant.ownerId,
+      userId: auth.currentUser.uid,
+      userEmail: auth.currentUser.email,
+      date: date,
+      time: time,
+      guests: guests,
+      specialRequests: requests,
+      status: "PENDING",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    
+    closeModal();
+    showToast("Booking request submitted successfully!\n\nThe restaurant owner will confirm your booking soon.","success");
+    
+  } catch (error) {
+    console.error("Error creating booking:", error);
+    showToast("Failed to create booking. Please try again.","error");
+  }
 };
 
 window.closeModal = function() {
-    const modal = document.getElementById("booking-modal");
-    modal.style.animation = "fadeOut 0.3s ease-out";
-    setTimeout(() => {
-        modal.classList.add("hidden");
-        modal.style.animation = "";
-    }, 300);
-    
-    currentRestaurant = null;
-    
-    // Reset form
-    document.getElementById("booking-guests").value = "2";
-    document.getElementById("special-requests").value = "";
+  document.getElementById("booking-modal").classList.add("hidden");
+  currentRestaurant = null;
+  
+  // Reset form
+  document.getElementById("booking-guests").value = "2";
+  document.getElementById("special-requests").value = "";
 };
 
 window.logout = async function() {
-    const result = await showConfirmation({
-        title: "Logout",
-        message: "Are you sure you want to logout?",
-        cancelText: "Cancel",
-        confirmText: "Logout",
-        type: "warning",
-        icon: "fa-sign-out-alt"
-    });
-    
-    if (result) {
-        try {
-            // Show loading state
-            const logoutBtn = document.querySelector('nav a[onclick="logout()"]');
-            const originalText = logoutBtn.innerHTML;
-            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
-            logoutBtn.onclick = null;
-            
-            await auth.signOut();
-            showToast("Logged out successfully", "success");
-            setTimeout(() => {
-                window.location.href = "index.html";
-            }, 1000);
-        } catch (error) {
-            console.error("Logout error:", error);
-            showToast("Logout failed. Please try again.", "error");
-            const logoutBtn = document.querySelector('nav a[onclick="logout()"]');
-            logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-            logoutBtn.onclick = window.logout;
-        }
-    }
+  try {
+    await auth.signOut();
+    window.location.href = "index.html";
+  } catch (error) {
+    console.error("Logout error:", error);
+    showToast("Logout failed. Please try again.","error");
+  }
 };
+function showToast(message, type = "success") {
+  // Remove existing toast
+  const existingToast = document.querySelector('.toast');
+  if (existingToast) existingToast.remove();
+  
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+    <span>${message}</span>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-20px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+// Helper function to show errors
+function showError(message) {
+  const container = document.getElementById("restaurants-container") || document.body;
+  const errorDiv = document.createElement("div");
+  errorDiv.className = "error-message";
+  errorDiv.innerHTML = `
+    <i class="fas fa-exclamation-circle"></i>
+    ${message}
+  `;
+  container.appendChild(errorDiv);
+}
