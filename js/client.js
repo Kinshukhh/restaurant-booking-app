@@ -37,6 +37,58 @@ function addToastStyles() {
             pointer-events: none;
             animation: fadeSlideUp 0.3s ease-out;
         }
+/* ===== MODAL OVERLAY ===== */
+#booking-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#booking-modal.hidden {
+  display: none;
+}
+
+/* ===== MODAL BOX ===== */
+#booking-modal .modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 500px;
+
+  max-height: 90vh;      /* 🔥 KEY */
+  overflow-y: auto;      /* 🔥 KEY */
+
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+/* Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Body spacing */
+.modal-body .form-group {
+  margin-bottom: 1rem;
+}
+
+/* Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* Lock background scroll */
+body.modal-open {
+  overflow: hidden;
+}
 
         .toast-success {
             background: rgba(212,237,218,.95);
