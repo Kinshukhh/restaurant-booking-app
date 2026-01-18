@@ -4,59 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings - TableBook</title>
- <link rel="stylesheet" href="./css/style.css?v=2">
-
+    <link rel="stylesheet" href="./css/style.css?v=2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .filter-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-        
-        .filter-btn {
-            padding: 8px 16px;
-            background: #dfe6e9;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        
-        .filter-btn.active {
-            background: #e17055;
-            color: white;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -66,15 +15,33 @@
             <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </nav>
         
-        <h2><i class="fas fa-calendar-alt"></i> My Bookings</h2>
+        <div class="header">
+            <h1 class="animated-title">
+                <span style="--char-index: 0">M</span>
+                <span style="--char-index: 1">y</span>
+                <span style="--char-index: 2">&nbsp;</span>
+                <span style="--char-index: 3">B</span>
+                <span style="--char-index: 4">o</span>
+                <span style="--char-index: 5">o</span>
+                <span style="--char-index: 6">k</span>
+                <span style="--char-index: 7">i</span>
+                <span style="--char-index: 8">n</span>
+                <span style="--char-index: 9">g</span>
+                <span style="--char-index: 10">s</span>
+            </h1>
+            <p class="subtitle">Manage and track all your restaurant reservations in one place</p>
+        </div>
         
-        <!-- Filter Buttons -->
-        <div class="filter-buttons">
-            <button class="filter-btn active" onclick="filterBookings('all')">All</button>
-            <button class="filter-btn" onclick="filterBookings('PENDING')">Pending</button>
-            <button class="filter-btn" onclick="filterBookings('CONFIRMED')">Confirmed</button>
-            <button class="filter-btn" onclick="filterBookings('CANCELLED')">Cancelled</button>
-            <button class="filter-btn" onclick="filterBookings('COMPLETED')">Completed</button>
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <p style="color: #636e72; margin-bottom: 0.75rem; font-weight: 600; font-size: 0.9rem;">Filter by status:</p>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterBookings('all')">All</button>
+                <button class="filter-btn" onclick="filterBookings('PENDING')">Pending</button>
+                <button class="filter-btn" onclick="filterBookings('CONFIRMED')">Confirmed</button>
+                <button class="filter-btn" onclick="filterBookings('CANCELLED')">Cancelled</button>
+                <button class="filter-btn" onclick="filterBookings('COMPLETED')">Completed</button>
+            </div>
         </div>
         
         <div id="bookings-list">
@@ -87,18 +54,20 @@
     <!-- Cancel Booking Modal -->
     <div id="cancel-modal" class="modal hidden">
         <div class="modal-content">
-            <h3>Cancel Booking</h3>
-            <p>Are you sure you want to cancel this booking?</p>
-            <p id="booking-details"></p>
+            <h3 style="color: #e17055; margin-bottom: 1rem;">Cancel Booking</h3>
+            <p style="color: #636e72; margin-bottom: 1rem;">Are you sure you want to cancel this booking?</p>
+            <div class="booking-card" style="margin-bottom: 1.5rem;">
+                <p id="booking-details" style="color: #636e72; line-height: 1.5;"></p>
+            </div>
             <div class="form-group">
                 <label for="cancel-reason">Reason for cancellation (optional):</label>
-                <textarea id="cancel-reason" rows="3" placeholder="Please provide a reason..."></textarea>
+                <textarea id="cancel-reason" rows="3" placeholder="Please provide a reason..." style="min-height: 100px; resize: vertical;"></textarea>
             </div>
             <div class="modal-buttons">
-                <button onclick="confirmCancel()" style="background: #d63031;">
+                <button onclick="confirmCancel()" style="background: linear-gradient(to right, #d63031, #e17055);">
                     <i class="fas fa-times-circle"></i> Cancel Booking
                 </button>
-                <button onclick="closeCancelModal()" style="background: #636e72;">
+                <button onclick="closeCancelModal()" style="background: linear-gradient(to right, #636e72, #2d3436);">
                     <i class="fas fa-times"></i> Keep Booking
                 </button>
             </div>
