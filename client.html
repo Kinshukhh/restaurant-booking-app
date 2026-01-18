@@ -29,43 +29,29 @@
         <div id="restaurants-container"></div>
         
         <!-- Booking Modal -->
-        <!-- Booking Modal Structure - Add this to your client.html body -->
-<div id="booking-modal" class="hidden">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2 id="modal-title">Book a Table</h2>
-      <button onclick="closeModal()" class="close-btn">✕</button>
-    </div>
-
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Date</label>
-        <input type="date" id="booking-date" required />
-      </div>
-
-      <div class="form-group">
-        <label>Time Slot</label>
-        <select id="booking-time"></select>
-      </div>
-
-      <div class="form-group">
-        <label>Guests</label>
-        <input type="number" id="booking-guests" min="1" max="20" value="2" />
-      </div>
-
-      <div class="form-group">
-        <label>Special Requests</label>
-        <textarea id="special-requests" rows="4"></textarea>
-      </div>
-    </div>
-
-    <div class="modal-footer modal-buttons">
-      <button onclick="closeModal()">Cancel</button>
-      <button onclick="confirmBooking()">Confirm Booking</button>
-    </div>
-  </div>
-</div>
-
+        <div id="booking-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3 id="modal-title">Book Table</h3>
+                <div class="form-group">
+                    <label for="booking-date">Date</label>
+                    <input type="date" id="booking-date">
+                </div>
+                <div class="form-group">
+                    <label for="booking-time">Time Slot</label>
+                    <select id="booking-time"></select>
+                </div>
+                <div class="form-group">
+                    <label for="booking-guests">Number of Guests</label>
+                    <input type="number" id="booking-guests" min="1" max="20" value="2">
+                </div>
+                <div class="form-group">
+                    <label for="special-requests">Special Requests (Optional)</label>
+                    <textarea id="special-requests" rows="3" placeholder="Any special requests..."></textarea>
+                </div>
+                <button onclick="confirmBooking()">Confirm Booking</button>
+                <button onclick="closeModal()" style="background: #636e72;">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="./js/client.js"></script>
