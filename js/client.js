@@ -9,6 +9,298 @@ let currentRestaurant = null;
 let userLocation = null;
 let restaurantsData = [];
 
+// Add toast styles
+function addToastStyles() {
+    if (!document.querySelector('#toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+                z-index: 10000;
+                animation: fadeSlideUp 0.3s ease-out;
+                border: 1px solid;
+                max-width: 400px;
+                word-break: break-word;
+            }
+            
+            .toast-success {
+                background: var(--success-bg, rgba(212, 237, 218, 0.95));
+                color: var(--success-color, #155724);
+                border-color: var(--success-border, rgba(195, 230, 203, 0.5));
+            }
+            
+            .toast-error {
+                background: var(--error-bg, rgba(248, 215, 218, 0.95));
+                color: var(--error-color, #721c24);
+                border-color: var(--error-border, rgba(245, 198, 203, 0.5));
+            }
+            
+            .toast-warning {
+                background: var(--warning-bg, rgba(255, 243, 205, 0.95));
+                color: var(--warning-color, #856404);
+                border-color: var(--warning-border, rgba(255, 238, 186, 0.5));
+            }
+            
+            .toast-info {
+                background: var(--info-bg, rgba(209, 236, 241, 0.95));
+                color: var(--info-color, #0c5460);
+                border-color: var(--info-border, rgba(190, 229, 235, 0.5));
+            }
+            
+            @keyframes fadeSlideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            
+            /* Dark mode adjustments */
+            @media (prefers-color-scheme: dark) {
+                .toast-success {
+                    background: rgba(212, 237, 218, 0.2);
+                    color: #d4edda;
+                }
+                
+                .toast-error {
+                    background: rgba(248, 215, 218, 0.2);
+                    color: #f8d7da;
+                }
+                
+                .toast-warning {
+                    background: rgba(255, 243, 205, 0.2);
+                    color: #fff3cd;
+                }
+                
+                .toast-info {
+                    background: rgba(209, 236, 241, 0.2);
+                    color: #d1ecf1;
+                }
+            }
+            
+            /* Confirmation modal styles */
+            .confirmation-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10001;
+                animation: fadeIn 0.3s ease-out;
+            }
+            
+            .confirmation-content {
+                background: var(--modal-bg, white);
+                padding: 2rem;
+                border-radius: 20px;
+                max-width: 400px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                animation: slideUp 0.3s ease-out;
+            }
+            
+            .confirmation-header {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .confirmation-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+            }
+            
+            .confirmation-icon.warning {
+                background: linear-gradient(135deg, #ffc107, #ff9800);
+                color: #000;
+            }
+            
+            .confirmation-icon.info {
+                background: linear-gradient(135deg, #17a2b8, #138496);
+                color: white;
+            }
+            
+            .confirmation-title {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: var(--text-primary, #2d3436);
+                margin: 0;
+            }
+            
+            .confirmation-message {
+                color: var(--text-secondary, #636e72);
+                margin-bottom: 2rem;
+                line-height: 1.5;
+            }
+            
+            .confirmation-buttons {
+                display: flex;
+                gap: 1rem;
+                justify-content: flex-end;
+            }
+            
+            .confirmation-buttons button {
+                padding: 0.75rem 1.5rem;
+                border-radius: 12px;
+                border: none;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .confirmation-cancel {
+                background: var(--cancel-bg, #f5f5f5);
+                color: var(--cancel-color, #666);
+            }
+            
+            .confirmation-cancel:hover {
+                background: var(--cancel-hover, #e0e0e0);
+            }
+            
+            .confirmation-confirm {
+                background: linear-gradient(135deg, var(--accent-color, #e17055), var(--accent-dark, #d63031));
+                color: white;
+            }
+            
+            .confirmation-confirm:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+                /* Dark mode variables */
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --text-primary: #ffffff;
+          --text-secondary: rgba(255, 255, 255, 0.7);
+          --text-light: rgba(255, 255, 255, 0.5);
+          --accent-color: #e17055;
+          --accent-dark: #d63031;
+          --accent-light: rgba(225, 112, 85, 0.2);
+          --card-bg-light: rgba(40, 40, 40, 0.8);
+          --border-color: rgba(255, 255, 255, 0.1);
+          --border-light: rgba(255, 255, 255, 0.05);
+          --icon-color: rgba(255, 255, 255, 0.1);
+          --error-color: #f5c6cb;
+          --error-bg: rgba(248, 215, 218, 0.2);
+          --error-bg-light: rgba(248, 215, 218, 0.1);
+          --error-border: rgba(245, 198, 203, 0.3);
+          --error-dark: #d32f2f;
+          --success-color: #4CAF50;
+          --success-dark: #45a049;
+          --success-bg: rgba(212, 237, 218, 0.2);
+          --success-border: rgba(195, 230, 203, 0.3);
+        }
+        
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Initialize toast styles
+addToastStyles();
+
+// Confirmation modal function
+window.showConfirmation = function(options) {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'confirmation-modal';
+        
+        modal.innerHTML = `
+            <div class="confirmation-content">
+                <div class="confirmation-header">
+                    <div class="confirmation-icon ${options.type || 'warning'}">
+                        <i class="fas ${options.icon || 'fa-exclamation-triangle'}"></i>
+                    </div>
+                    <h3 class="confirmation-title">${options.title || 'Confirmation Required'}</h3>
+                </div>
+                <p class="confirmation-message">${options.message}</p>
+                <div class="confirmation-buttons">
+                    <button class="confirmation-cancel" onclick="handleConfirmation(false)">
+                        ${options.cancelText || 'Cancel'}
+                    </button>
+                    <button class="confirmation-confirm" onclick="handleConfirmation(true)">
+                        ${options.confirmText || 'Confirm'}
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Store resolve function globally
+        window.handleConfirmation = function(result) {
+            modal.remove();
+            delete window.handleConfirmation;
+            resolve(result);
+        };
+    });
+};
+
+// Toast notification function
+window.showToast = function(message, type = "success", duration = 3000) {
+    // Remove existing toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    // Map type to icon
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    
+    toast.innerHTML = `
+        <i class="fas ${icons[type] || 'fa-info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+};
+
 // Check authentication
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
@@ -34,7 +326,10 @@ auth.onAuthStateChanged(async (user) => {
         loadRestaurants();
     } catch (error) {
         console.error("Auth check failed:", error);
-        showError("Authentication error. Please login again.");
+        showToast("Authentication error. Please login again.", "error");
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 2000);
     }
 });
 
@@ -42,7 +337,7 @@ auth.onAuthStateChanged(async (user) => {
 async function getUserLocation() {
     return new Promise((resolve) => {
         if (!navigator.geolocation) {
-            console.warn("Geolocation is not supported by this browser.");
+            showToast("Geolocation is not supported by your browser", "warning");
             resolve(null);
             return;
         }
@@ -53,11 +348,11 @@ async function getUserLocation() {
             try {
                 userLocation = JSON.parse(savedLocation);
                 console.log("Using saved location:", userLocation);
-                // Don't show location request if we already have location
                 resolve(userLocation);
                 return;
             } catch (e) {
                 console.warn("Failed to parse saved location:", e);
+                localStorage.removeItem('userLocation');
             }
         }
         
@@ -65,21 +360,23 @@ async function getUserLocation() {
         const locationSection = document.createElement('div');
         locationSection.className = 'location-request';
         locationSection.innerHTML = `
-            <div style="background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-map-marker-alt" style="color: #ffc107; font-size: 20px;"></i>
-                    <div>
-                        <h4 style="margin: 0; color: #856404;">Enable Location Services</h4>
-                        <p style="margin: 5px 0; color: #856404; font-size: 14px;">
-                            Allow location access to see restaurants near you
+            <div style="background: linear-gradient(135deg, #fff3cd, #ffeaa7); padding: 20px; border-radius: 16px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ffc107, #ff9800); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-map-marker-alt" style="color: white; font-size: 24px;"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; color: #856404; font-weight: 700;">Enable Location Services</h4>
+                        <p style="margin: 0; color: #856404; font-size: 14px; opacity: 0.9;">
+                            Allow location access to see restaurants near you and get distance information
                         </p>
                     </div>
                 </div>
-                <div style="margin-top: 10px; display: flex; gap: 10px;">
-                    <button onclick="allowLocation()" class="allow-location-btn">
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="allowLocation()" class="allow-location-btn" style="flex: 1;">
                         <i class="fas fa-check"></i> Allow Location
                     </button>
-                    <button onclick="skipLocation()" style="background: transparent; border: 1px solid #ccc; color: #666;">
+                    <button onclick="skipLocation()" style="background: transparent; border: 2px solid #ddd; color: #666; padding: 10px 20px; border-radius: 10px; font-weight: 600;">
                         Skip for Now
                     </button>
                 </div>
@@ -102,7 +399,7 @@ async function getUserLocation() {
                 const position = await new Promise((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(resolve, reject, {
                         enableHighAccuracy: true,
-                        timeout: 5000,
+                        timeout: 10000,
                         maximumAge: 0
                     });
                 });
@@ -110,7 +407,8 @@ async function getUserLocation() {
                 userLocation = {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy
+                    accuracy: position.coords.accuracy,
+                    timestamp: new Date().toISOString()
                 };
                 
                 console.log("User location obtained:", userLocation);
@@ -120,18 +418,23 @@ async function getUserLocation() {
                 
                 // Update UI
                 locationSection.innerHTML = `
-                    <div style="background: #d4edda; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #28a745;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-map-marker-alt" style="color: #28a745; font-size: 20px;"></i>
+                    <div style="background: linear-gradient(135deg, #d4edda, #c3e6cb); padding: 20px; border-radius: 16px; margin-bottom: 20px; border-left: 4px solid #28a745;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #28a745, #20c997); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-map-marker-alt" style="color: white; font-size: 24px;"></i>
+                            </div>
                             <div>
-                                <h4 style="margin: 0; color: #155724;">Location Enabled</h4>
-                                <p style="margin: 5px 0; color: #155724; font-size: 14px;">
+                                <h4 style="margin: 0 0 5px 0; color: #155724; font-weight: 700;">Location Enabled</h4>
+                                <p style="margin: 0; color: #155724; font-size: 14px; opacity: 0.9;">
                                     Showing restaurants near your location
                                 </p>
                             </div>
                         </div>
                     </div>
                 `;
+                
+                // Show success toast
+                showToast("Location enabled! Showing restaurants near you", "success");
                 
                 // Reload restaurants with location
                 if (restaurantsData.length > 0) {
@@ -142,24 +445,33 @@ async function getUserLocation() {
             } catch (error) {
                 console.warn("Location access denied or failed:", error);
                 locationSection.innerHTML = `
-                    <div style="background: #f8d7da; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #dc3545;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-exclamation-circle" style="color: #dc3545; font-size: 20px;"></i>
+                    <div style="background: linear-gradient(135deg, #f8d7da, #f5c6cb); padding: 20px; border-radius: 16px; margin-bottom: 20px; border-left: 4px solid #dc3545;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #dc3545, #c82333); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-exclamation-circle" style="color: white; font-size: 24px;"></i>
+                            </div>
                             <div>
-                                <h4 style="margin: 0; color: #721c24;">Location Access Denied</h4>
-                                <p style="margin: 5px 0; color: #721c24; font-size: 14px;">
+                                <h4 style="margin: 0 0 5px 0; color: #721c24; font-weight: 700;">Location Access Denied</h4>
+                                <p style="margin: 0; color: #721c24; font-size: 14px; opacity: 0.9;">
                                     Showing all restaurants instead
                                 </p>
                             </div>
                         </div>
                     </div>
                 `;
+                
+                showToast("Location access denied. Showing all restaurants.", "warning");
                 resolve(null);
             }
         };
         
         window.skipLocation = function() {
-            locationSection.style.display = 'none';
+            locationSection.style.opacity = '0';
+            locationSection.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                locationSection.remove();
+                showToast("You can enable location later from the filter section", "info");
+            }, 300);
             resolve(null);
         };
     });
@@ -172,24 +484,33 @@ async function loadRestaurants() {
         const container = document.getElementById("restaurants-container");
         
         // Show loading
-        if (loadingElement) loadingElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading restaurants...';
+        if (loadingElement) {
+            loadingElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading restaurants...';
+            loadingElement.style.display = "block";
+        }
         
         // Get all restaurants
         const querySnapshot = await getDocs(collection(db, "restaurants"));
         console.log("Restaurants found:", querySnapshot.size);
         
         // Hide loading
-        if (loadingElement) loadingElement.style.display = "none";
+        if (loadingElement) {
+            loadingElement.style.display = "none";
+        }
         
         restaurantsData = [];
         container.innerHTML = "";
         
         if (querySnapshot.empty) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 40px;">
-                    <i class="fas fa-utensils" style="font-size: 48px; color: #dfe6e9; margin-bottom: 20px;"></i>
-                    <p style="color: #636e72; font-size: 18px;">No restaurants available yet.</p>
-                    <p style="color: #b2bec3;">Check back later or ask restaurant owners to add their listings.</p>
+                <div class="empty-state" style="text-align: center; padding: 60px 20px;">
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #f5f7fa, #c3cfe2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                        <i class="fas fa-utensils" style="font-size: 36px; color: #6c757d;"></i>
+                    </div>
+                    <h3 style="color: #495057; margin-bottom: 10px;">No Restaurants Available</h3>
+                    <p style="color: #6c757d; max-width: 400px; margin: 0 auto 25px;">
+                        No restaurants have been registered yet. Check back later or ask restaurant owners to add their listings.
+                    </p>
                 </div>
             `;
             return;
@@ -239,18 +560,24 @@ async function loadRestaurants() {
         const container = document.getElementById("restaurants-container");
         const loadingElement = document.getElementById("loading");
         
-        if (loadingElement) loadingElement.style.display = "none";
+        if (loadingElement) {
+            loadingElement.style.display = "none";
+        }
         
         container.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                Failed to load restaurants. Please try again.
-                <p style="font-size: 14px; margin-top: 10px;">Error: ${error.message}</p>
-                <button onclick="location.reload()" style="margin-top: 15px;">
-                    <i class="fas fa-redo"></i> Retry
+            <div class="error-message" style="text-align: center; padding: 40px 20px;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f8d7da, #f5c6cb); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <i class="fas fa-exclamation-circle" style="color: #721c24; font-size: 24px;"></i>
+                </div>
+                <h3 style="color: #721c24; margin-bottom: 10px;">Failed to Load Restaurants</h3>
+                <p style="color: #856404; margin-bottom: 20px;">${error.message}</p>
+                <button onclick="location.reload()" style="background: linear-gradient(135deg, #e17055, #d63031); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                    <i class="fas fa-redo"></i> Retry Loading
                 </button>
             </div>
         `;
+        
+        showToast("Failed to load restaurants. Please try again.", "error");
     }
 }
 
@@ -258,31 +585,49 @@ function displayRestaurants(restaurants) {
     const container = document.getElementById("restaurants-container");
     container.innerHTML = "";
     
-    // Add filter options
     const filterSection = document.createElement('div');
     filterSection.className = 'filter-section';
     filterSection.innerHTML = `
-        <div style="margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <h3 style="margin: 0;">${restaurants.length} Restaurants Found</h3>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="sortByDistance()" class="filter-btn">
+        <div style="margin-bottom: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <h2 style="margin: 0; color: var(--text-primary, #2d3436);">Restaurants</h2>
+                    <p style="margin: 5px 0 0 0; color: var(--text-secondary, #636e72); font-size: 14px;">
+                        ${restaurants.length} restaurant${restaurants.length !== 1 ? 's' : ''} found
+                    </p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="sortByDistance()" class="filter-btn" style="background: linear-gradient(135deg, #e17055, #d63031);">
                         <i class="fas fa-map-marker-alt"></i> Sort by Distance
                     </button>
-                    <button onclick="sortByName()" class="filter-btn">
+                    <button onclick="sortByName()" class="filter-btn" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);">
                         <i class="fas fa-sort-alpha-down"></i> Sort by Name
+                    </button>
+                    <button onclick="filterByCuisine()" class="filter-btn" style="background: linear-gradient(135deg, #00b894, #00cec9);">
+                        <i class="fas fa-filter"></i> Filter by Cuisine
                     </button>
                 </div>
             </div>
             
             ${userLocation ? `
-                <div style="margin-top: 10px; font-size: 14px; color: #636e72;">
-                    <i class="fas fa-map-marker-alt" style="color: #e17055;"></i>
-                    ${restaurants.some(r => r.distance) ? 'Showing restaurants near your location' : 'No restaurants with location data found'}
-                    <span id="current-location" style="cursor: pointer; color: #e17055; margin-left: 10px;" 
-                          onclick="updateLocation()">
-                        <i class="fas fa-sync-alt"></i> Update Location
-                    </span>
+                <div style="background: rgba(225, 112, 85, 0.1); padding: 12px 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-map-marker-alt" style="color: #e17055;"></i>
+                        <span style="color: #636e72; font-size: 14px;">
+                            ${restaurants.some(r => r.distance) ? 
+                                'Showing restaurants near your location' : 
+                                'No restaurants with location data found'}
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <span id="current-location" style="cursor: pointer; color: #e17055; font-weight: 600; font-size: 14px;" 
+                              onclick="updateLocation()">
+                            <i class="fas fa-sync-alt"></i> Update Location
+                        </span>
+                        <span onclick="clearLocation()" style="cursor: pointer; color: #636e72; font-size: 14px;">
+                            <i class="fas fa-times"></i> Clear
+                        </span>
+                    </div>
                 </div>
             ` : ''}
         </div>
@@ -292,10 +637,15 @@ function displayRestaurants(restaurants) {
     
     if (restaurants.length === 0) {
         container.innerHTML += `
-            <div style="text-align: center; padding: 40px;">
-                <i class="fas fa-search" style="font-size: 48px; color: #dfe6e9; margin-bottom: 20px;"></i>
-                <p style="color: #636e72; font-size: 18px;">No restaurants match your filters.</p>
-                <button onclick="clearFilters()" style="margin-top: 15px;">
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #f5f7fa, #c3cfe2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <i class="fas fa-search" style="font-size: 36px; color: #6c757d;"></i>
+                </div>
+                <h3 style="color: #495057; margin-bottom: 10px;">No Restaurants Match Your Filters</h3>
+                <p style="color: #6c757d; max-width: 400px; margin: 0 auto 25px;">
+                    Try changing your filters or clear them to see all available restaurants.
+                </p>
+                <button onclick="clearFilters()" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer;">
                     <i class="fas fa-times"></i> Clear Filters
                 </button>
             </div>
@@ -373,7 +723,6 @@ function displayRestaurants(restaurants) {
         container.appendChild(card);
     });
 }
-
 // Calculate distance between two coordinates (Haversine formula)
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Earth's radius in km
@@ -397,7 +746,7 @@ function toRad(degrees) {
 // Sorting and filtering functions
 window.sortByDistance = function() {
     if (!userLocation) {
-        alert("Please enable location services to sort by distance.");
+        showToast("Please enable location services to sort by distance.", "warning");
         return;
     }
     
@@ -421,6 +770,7 @@ window.sortByDistance = function() {
     });
     
     displayRestaurants(sorted);
+    showToast("Sorted restaurants by distance", "success");
 };
 
 window.sortByName = function() {
@@ -429,9 +779,10 @@ window.sortByName = function() {
     );
     
     displayRestaurants(sorted);
+    showToast("Sorted restaurants by name", "success");
 };
 
-window.filterByCuisine = function() {
+window.filterByCuisine = async function() {
     // Get unique cuisines
     const cuisines = [...new Set(restaurantsData
         .map(r => r.cuisine)
@@ -439,26 +790,84 @@ window.filterByCuisine = function() {
     )];
     
     if (cuisines.length === 0) {
-        alert("No cuisines available to filter.");
+        showToast("No cuisines available to filter.", "info");
         return;
     }
     
-    const cuisine = prompt(`Available cuisines:\n${cuisines.join('\n')}\n\nEnter cuisine to filter:`);
-    if (cuisine) {
+    // Create a custom prompt for cuisine selection
+    const modal = document.createElement('div');
+    modal.className = 'confirmation-modal';
+    modal.innerHTML = `
+        <div class="confirmation-content" style="max-width: 500px;">
+            <div class="confirmation-header">
+                <div class="confirmation-icon info">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <h3 class="confirmation-title">Filter by Cuisine</h3>
+            </div>
+            <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+                ${cuisines.map(cuisine => `
+                    <div class="cuisine-option" onclick="selectCuisine('${cuisine}')" 
+                         style="padding: 12px 16px; border-radius: 10px; margin-bottom: 8px; cursor: pointer; 
+                                border: 2px solid #e0e0e0; transition: all 0.3s ease;">
+                        <i class="fas fa-utensil-spoon" style="margin-right: 10px; color: #e17055;"></i>
+                        ${cuisine}
+                    </div>
+                `).join('')}
+            </div>
+            <div class="confirmation-buttons">
+                <button class="confirmation-cancel" onclick="closeCuisineModal()">
+                    Cancel
+                </button>
+                <button onclick="showAllCuisines()" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600;">
+                    Show All
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    window.selectCuisine = function(cuisine) {
         const filtered = restaurantsData.filter(r => 
             r.cuisine && r.cuisine.toLowerCase().includes(cuisine.toLowerCase())
         );
         
+        modal.remove();
+        delete window.selectCuisine;
+        delete window.closeCuisineModal;
+        delete window.showAllCuisines;
+        
         if (filtered.length === 0) {
-            alert(`No restaurants found for cuisine: ${cuisine}`);
+            showToast(`No restaurants found for cuisine: ${cuisine}`, "info");
         } else {
             displayRestaurants(filtered);
+            showToast(`Showing ${filtered.length} restaurant${filtered.length !== 1 ? 's' : ''} with ${cuisine} cuisine`, "success");
         }
-    }
+    };
+    
+    window.closeCuisineModal = function() {
+        modal.remove();
+        delete window.selectCuisine;
+        delete window.closeCuisineModal;
+        delete window.showAllCuisines;
+    };
+    
+    window.showAllCuisines = function() {
+        modal.remove();
+        delete window.selectCuisine;
+        delete window.closeCuisineModal;
+        delete window.showAllCuisines;
+        displayRestaurants(restaurantsData);
+        showToast("Showing all cuisines", "success");
+    };
 };
 
 window.filterRestaurantsByLocation = function() {
-    if (!userLocation) return;
+    if (!userLocation) {
+        showToast("Please enable location services to filter by location.", "warning");
+        return;
+    }
     
     const filtered = restaurantsData.filter(restaurant => {
         if (!restaurant.latitude || !restaurant.longitude) return false;
@@ -475,7 +884,7 @@ window.filterRestaurantsByLocation = function() {
     });
     
     if (filtered.length === 0) {
-        alert("No restaurants found within 50km of your location.");
+        showToast("No restaurants found within 50km of your location.", "info");
         return;
     }
     
@@ -483,29 +892,39 @@ window.filterRestaurantsByLocation = function() {
     filtered.sort((a, b) => a.distance - b.distance);
     
     displayRestaurants(filtered);
+    showToast(`Showing ${filtered.length} restaurant${filtered.length !== 1 ? 's' : ''} within 50km`, "success");
 };
 
 window.updateLocation = async function() {
-    const useCurrentLocation = confirm("Use your current location? Click OK for current location, or Cancel to enter an address.");
+    const result = await showConfirmation({
+        title: "Update Location",
+        message: "How would you like to update your location?",
+        cancelText: "Cancel",
+        confirmText: "Use Current Location",
+        type: "info",
+        icon: "fa-map-marker-alt"
+    });
     
-    if (useCurrentLocation) {
+    if (result) {
+        // Use current location
         try {
             const position = await new Promise((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition(resolve, reject, {
                     enableHighAccuracy: true,
-                    timeout: 5000
+                    timeout: 10000
                 });
             });
             
             userLocation = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy
+                accuracy: position.coords.accuracy,
+                timestamp: new Date().toISOString()
             };
             
             localStorage.setItem('userLocation', JSON.stringify(userLocation));
             
-            alert("Location updated successfully!");
+            showToast("Location updated successfully!", "success");
             
             // Recalculate distances for all restaurants
             restaurantsData.forEach(restaurant => {
@@ -528,21 +947,69 @@ window.updateLocation = async function() {
             
             displayRestaurants(restaurantsData);
         } catch (error) {
-            alert("Failed to get current location. Please check your location settings.");
+            console.error("Location error:", error);
+            showToast("Failed to get current location. Please check your location settings.", "error");
         }
     } else {
-        const address = prompt("Enter your address or location:");
-        if (address) {
+        // User cancelled or wants to enter address
+        const modal = document.createElement('div');
+        modal.className = 'confirmation-modal';
+        modal.innerHTML = `
+            <div class="confirmation-content">
+                <div class="confirmation-header">
+                    <div class="confirmation-icon info">
+                        <i class="fas fa-map-pin"></i>
+                    </div>
+                    <h3 class="confirmation-title">Enter Location</h3>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="address-input" placeholder="Enter your address or city" 
+                           style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px;">
+                </div>
+                <div class="confirmation-buttons">
+                    <button class="confirmation-cancel" onclick="closeAddressModal()">
+                        Cancel
+                    </button>
+                    <button onclick="submitAddress()" style="background: linear-gradient(135deg, #e17055, #d63031); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600;">
+                        Set Location
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        window.closeAddressModal = function() {
+            modal.remove();
+            delete window.closeAddressModal;
+            delete window.submitAddress;
+        };
+        
+        window.submitAddress = async function() {
+            const addressInput = document.getElementById('address-input');
+            const address = addressInput.value.trim();
+            
+            if (!address) {
+                showToast("Please enter an address", "warning");
+                return;
+            }
+            
             try {
                 const coords = await geocodeAddress(address);
                 if (coords) {
                     userLocation = {
                         latitude: coords.lat,
-                        longitude: coords.lng
+                        longitude: coords.lng,
+                        address: address,
+                        timestamp: new Date().toISOString()
                     };
                     
                     localStorage.setItem('userLocation', JSON.stringify(userLocation));
-                    alert("Location updated successfully!");
+                    modal.remove();
+                    delete window.closeAddressModal;
+                    delete window.submitAddress;
+                    
+                    showToast("Location updated successfully!", "success");
                     
                     // Recalculate distances
                     restaurantsData.forEach(restaurant => {
@@ -565,41 +1032,102 @@ window.updateLocation = async function() {
                     
                     displayRestaurants(restaurantsData);
                 } else {
-                    alert("Could not find coordinates for that address.");
+                    showToast("Could not find coordinates for that address. Please try again.", "error");
                 }
             } catch (error) {
-                alert("Error geocoding address. Please try a different address.");
+                console.error("Geocoding error:", error);
+                showToast("Error geocoding address. Please try a different address.", "error");
             }
-        }
+        };
     }
 };
 
+window.clearLocation = function() {
+    localStorage.removeItem('userLocation');
+    userLocation = null;
+    showToast("Location cleared", "info");
+    loadRestaurants();
+};
+
 window.showOnMap = function(lat, lng, name, address) {
-    // Open in Google Maps
-    const url = `https://www.google.com/maps?q=${lat},${lng}&z=15`;
-    window.open(url, '_blank');
+    // Create a toast with map info
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-info';
+    toast.innerHTML = `
+        <i class="fas fa-map"></i>
+        <div style="flex: 1;">
+            <div style="font-weight: 600; margin-bottom: 4px;">${name}</div>
+            ${address ? `<div style="font-size: 12px; opacity: 0.8;">${address}</div>` : ''}
+            <div style="font-size: 11px; opacity: 0.6; margin-top: 4px;">
+                Coordinates: ${lat.toFixed(6)}, ${lng.toFixed(6)}
+            </div>
+            <button onclick="openGoogleMaps(${lat}, ${lng})" style="background: #4285f4; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; margin-top: 8px; cursor: pointer;">
+                <i class="fab fa-google"></i> Open in Google Maps
+            </button>
+        </div>
+    `;
     
-    // Also show coordinates for reference
-    alert(`${name}\n${address ? address + '\n' : ''}\nCoordinates:\nLatitude: ${lat}\nLongitude: ${lng}\n\nOpening in Google Maps...`);
+    // Remove existing toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) existingToast.remove();
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+    
+    // Store function to open maps
+    window.openGoogleMaps = function(lat, lng) {
+        const url = `https://www.google.com/maps?q=${lat},${lng}&z=15`;
+        window.open(url, '_blank');
+    };
 };
 
 window.searchAddressOnMap = function(address, name) {
-    // Open Google Maps with address search
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-    window.open(url, '_blank');
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-info';
+    toast.innerHTML = `
+        <i class="fas fa-map-marked-alt"></i>
+        <div style="flex: 1;">
+            <div style="font-weight: 600; margin-bottom: 4px;">${name}</div>
+            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">${address}</div>
+            <button onclick="searchInGoogleMaps('${encodeURIComponent(address)}')" style="background: #4285f4; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                <i class="fab fa-google"></i> Search in Google Maps
+            </button>
+        </div>
+    `;
     
-    alert(`${name}\n\nSearching for: ${address}\n\nOpening in Google Maps...`);
+    // Remove existing toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) existingToast.remove();
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+    
+    window.searchInGoogleMaps = function(searchAddress) {
+        const url = `https://www.google.com/maps/search/?api=1&query=${searchAddress}`;
+        window.open(url, '_blank');
+    };
 };
 
 window.clearFilters = function() {
     loadRestaurants();
+    showToast("All filters cleared", "success");
 };
 
 // Geocoding function
 async function geocodeAddress(address) {
     try {
         const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=1`
         );
         const data = await response.json();
         
@@ -617,131 +1145,161 @@ async function geocodeAddress(address) {
 }
 
 window.openBookingModal = async function(restaurantId) {
-  console.log("Opening booking modal for restaurant:", restaurantId);
-  currentRestaurant = restaurantId;
-  
-  try {
-    const restaurantDoc = await getDoc(doc(db, "restaurants", restaurantId));
+    console.log("Opening booking modal for restaurant:", restaurantId);
+    currentRestaurant = restaurantId;
     
-    if (!restaurantDoc.exists()) {
-      alert("Restaurant not found!");
-      return;
+    try {
+        const restaurantDoc = await getDoc(doc(db, "restaurants", restaurantId));
+        
+        if (!restaurantDoc.exists()) {
+            showToast("Restaurant not found!", "error");
+            return;
+        }
+        
+        const restaurant = restaurantDoc.data();
+        
+        // Set modal title
+        document.getElementById("modal-title").textContent = `Book Table at ${restaurant.name}`;
+        
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById("booking-date");
+        dateInput.min = today;
+        dateInput.value = today;
+        
+        // Load time slots
+        const timeSelect = document.getElementById("booking-time");
+        timeSelect.innerHTML = "";
+        
+        if (restaurant.slots && restaurant.slots.length > 0) {
+            restaurant.slots.forEach(slot => {
+                const option = document.createElement("option");
+                option.value = slot;
+                option.textContent = slot;
+                timeSelect.appendChild(option);
+            });
+        } else {
+            // Default time slots
+            const defaultSlots = ["18:00-19:30", "19:30-21:00", "21:00-22:30"];
+            defaultSlots.forEach(slot => {
+                const option = document.createElement("option");
+                option.value = slot;
+                option.textContent = slot;
+                timeSelect.appendChild(option);
+            });
+        }
+        
+        // Show modal with animation
+        const modal = document.getElementById("booking-modal");
+        modal.classList.remove("hidden");
+        modal.style.animation = "fadeIn 0.3s ease-out";
+        
+    } catch (error) {
+        console.error("Error opening booking modal:", error);
+        showToast("Failed to open booking form. Please try again.", "error");
     }
-    
-    const restaurant = restaurantDoc.data();
-    
-    // Set modal title
-    document.getElementById("modal-title").textContent = `Book Table at ${restaurant.name}`;
-    
-    // Set minimum date to today
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById("booking-date").min = today;
-    document.getElementById("booking-date").value = today;
-    
-    // Load time slots
-    const timeSelect = document.getElementById("booking-time");
-    timeSelect.innerHTML = "";
-    
-    if (restaurant.slots && restaurant.slots.length > 0) {
-      restaurant.slots.forEach(slot => {
-        const option = document.createElement("option");
-        option.value = slot;
-        option.textContent = slot;
-        timeSelect.appendChild(option);
-      });
-    } else {
-      // Default time slots
-      const defaultSlots = ["18:00-19:30", "19:30-21:00", "21:00-22:30"];
-      defaultSlots.forEach(slot => {
-        const option = document.createElement("option");
-        option.value = slot;
-        option.textContent = slot;
-        timeSelect.appendChild(option);
-      });
-    }
-    
-    // Show modal
-    document.getElementById("booking-modal").classList.remove("hidden");
-    
-  } catch (error) {
-    console.error("Error opening booking modal:", error);
-    alert("Failed to open booking form. Please try again.");
-  }
 };
 
 window.confirmBooking = async function() {
-  const date = document.getElementById("booking-date").value;
-  const time = document.getElementById("booking-time").value;
-  const guests = parseInt(document.getElementById("booking-guests").value);
-  const requests = document.getElementById("special-requests").value;
-  
-  if (!date || !time || !guests || guests < 1) {
-    alert("Please fill in all required fields correctly.");
-    return;
-  }
-  
-  try {
-    const restaurantDoc = await getDoc(doc(db, "restaurants", currentRestaurant));
+    const date = document.getElementById("booking-date").value;
+    const time = document.getElementById("booking-time").value;
+    const guests = parseInt(document.getElementById("booking-guests").value);
+    const requests = document.getElementById("special-requests").value;
     
-    if (!restaurantDoc.exists()) {
-      alert("Restaurant not found!");
-      return;
+    if (!date || !time || !guests || guests < 1 || guests > 20) {
+        showToast("Please fill in all required fields correctly (1-20 guests).", "error");
+        return;
     }
     
-    const restaurant = restaurantDoc.data();
+    // Show loading state
+    const submitBtn = document.querySelector('#booking-modal .modal-buttons button:last-child');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booking...';
+    submitBtn.disabled = true;
     
-    // Create booking
-    await addDoc(collection(db, "bookings"), {
-      restaurantId: currentRestaurant,
-      restaurantName: restaurant.name,
-      ownerId: restaurant.ownerId,
-      userId: auth.currentUser.uid,
-      userEmail: auth.currentUser.email,
-      date: date,
-      time: time,
-      guests: guests,
-      specialRequests: requests,
-      status: "PENDING",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-    
-    closeModal();
-    alert("✅ Booking request submitted successfully!\n\nThe restaurant owner will confirm your booking soon.");
-    
-  } catch (error) {
-    console.error("Error creating booking:", error);
-    alert("Failed to create booking. Please try again.");
-  }
+    try {
+        const restaurantDoc = await getDoc(doc(db, "restaurants", currentRestaurant));
+        
+        if (!restaurantDoc.exists()) {
+            showToast("Restaurant not found!", "error");
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+        
+        const restaurant = restaurantDoc.data();
+        
+        // Create booking
+        await addDoc(collection(db, "bookings"), {
+            restaurantId: currentRestaurant,
+            restaurantName: restaurant.name,
+            ownerId: restaurant.ownerId,
+            userId: auth.currentUser.uid,
+            userEmail: auth.currentUser.email,
+            date: date,
+            time: time,
+            guests: guests,
+            specialRequests: requests,
+            status: "PENDING",
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+        
+        closeModal();
+        showToast("Booking request submitted successfully! The restaurant owner will confirm your booking soon.", "success", 5000);
+        
+    } catch (error) {
+        console.error("Error creating booking:", error);
+        showToast("Failed to create booking. Please try again.", "error");
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
 };
 
 window.closeModal = function() {
-  document.getElementById("booking-modal").classList.add("hidden");
-  currentRestaurant = null;
-  
-  // Reset form
-  document.getElementById("booking-guests").value = "2";
-  document.getElementById("special-requests").value = "";
+    const modal = document.getElementById("booking-modal");
+    modal.style.animation = "fadeOut 0.3s ease-out";
+    setTimeout(() => {
+        modal.classList.add("hidden");
+        modal.style.animation = "";
+    }, 300);
+    
+    currentRestaurant = null;
+    
+    // Reset form
+    document.getElementById("booking-guests").value = "2";
+    document.getElementById("special-requests").value = "";
 };
 
 window.logout = async function() {
-  try {
-    await auth.signOut();
-    window.location.href = "index.html";
-  } catch (error) {
-    console.error("Logout error:", error);
-    alert("Logout failed. Please try again.");
-  }
+    const result = await showConfirmation({
+        title: "Logout",
+        message: "Are you sure you want to logout?",
+        cancelText: "Cancel",
+        confirmText: "Logout",
+        type: "warning",
+        icon: "fa-sign-out-alt"
+    });
+    
+    if (result) {
+        try {
+            // Show loading state
+            const logoutBtn = document.querySelector('nav a[onclick="logout()"]');
+            const originalText = logoutBtn.innerHTML;
+            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+            logoutBtn.onclick = null;
+            
+            await auth.signOut();
+            showToast("Logged out successfully", "success");
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1000);
+        } catch (error) {
+            console.error("Logout error:", error);
+            showToast("Logout failed. Please try again.", "error");
+            const logoutBtn = document.querySelector('nav a[onclick="logout()"]');
+            logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+            logoutBtn.onclick = window.logout;
+        }
+    }
 };
-
-// Helper function to show errors
-function showError(message) {
-  const container = document.getElementById("restaurants-container") || document.body;
-  const errorDiv = document.createElement("div");
-  errorDiv.className = "error-message";
-  errorDiv.innerHTML = `
-    <i class="fas fa-exclamation-circle"></i>
-    ${message}
-  `;
-  container.appendChild(errorDiv);
-}
