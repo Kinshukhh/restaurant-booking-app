@@ -7,97 +7,6 @@
     <link rel="stylesheet" href="./css/style.css?v=2">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .restaurant-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        
-        .stat-card i {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #e17055;
-        }
-        
-        .stat-card h3 {
-            margin: 10px 0 5px 0;
-            font-size: 28px;
-        }
-        
-        .stat-card p {
-            color: #636e72;
-            font-size: 14px;
-        }
-        
-        .restaurant-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .restaurant-details {
-            margin: 15px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-        
-        .detail-row {
-            display: flex;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        
-        .detail-row i {
-            width: 30px;
-            color: #636e72;
-        }
-        
-        .no-restaurants {
-            text-align: center;
-            padding: 60px 20px;
-            color: #636e72;
-        }
-        
-        .no-restaurants i {
-            font-size: 48px;
-            color: #dfe6e9;
-            margin-bottom: 20px;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -108,12 +17,19 @@
         </nav>
         
         <h2><i class="fas fa-store"></i> My Restaurants</h2>
+        <br>
         
         <!-- Stats Section -->
         <div id="stats-container" class="restaurant-stats">
             <!-- Stats will be loaded dynamically -->
         </div>
-        
+         <!-- Restaurants List -->
+        <div id="restaurants-container">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading your restaurants...
+            </div>
+        </div>
+        <br>
         <!-- Add New Restaurant Button -->
         <div style="text-align: center; margin-bottom: 30px;">
             <button onclick="openAddModal()" style="max-width: 300px; margin: 0 auto;">
@@ -121,12 +37,7 @@
             </button>
         </div>
         
-        <!-- Restaurants List -->
-        <div id="restaurants-container">
-            <div class="loading">
-                <i class="fas fa-spinner fa-spin"></i> Loading your restaurants...
-            </div>
-        </div>
+       
     </div>
 
     <!-- Add/Edit Restaurant Modal -->
