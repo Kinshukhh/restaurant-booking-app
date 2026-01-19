@@ -4,9 +4,360 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owner Dashboard - TableBook</title>
-    <link rel="stylesheet" href="./css/style.css?v=2">
-
+    <link rel="stylesheet" href="./css/style.css?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional owner dashboard styles */
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+        }
+
+        .dashboard-title {
+            color: var(--accent-color, #e17055);
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .dashboard-subtitle {
+            color: var(--text-secondary, #636e72);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg-light, rgba(248, 249, 250, 0.8));
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-color, rgba(223, 230, 233, 0.3));
+            text-align: center;
+            animation: fadeSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) var(--delay, 0.1s) both;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-card i {
+            color: var(--accent-color, #e17055);
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card h4 {
+            margin: 0.5rem 0 0.25rem;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary, #2d3436);
+        }
+
+        .stat-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary, #636e72);
+            margin: 0;
+        }
+
+        .section-title {
+            color: var(--text-primary, #2d3436);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--accent-color, #e17055);
+        }
+
+        /* Bookings section */
+        #bookings-container {
+            margin-bottom: 2rem;
+        }
+
+        /* Restaurant filter info */
+        .restaurant-filter-info {
+            color: var(--text-secondary, #636e72);
+            margin: 0.5rem 0 1.5rem 0;
+            font-size: 0.95rem;
+            padding: 0.75rem 1rem;
+            background: rgba(225, 112, 85, 0.1);
+            border-radius: 12px;
+            border-left: 3px solid var(--accent-color, #e17055);
+        }
+
+        /* Booking card specific styles for owner dashboard */
+        .booking-card {
+            margin-bottom: 1rem;
+        }
+
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .booking-header h4 {
+            margin: 0;
+            color: var(--text-primary, #2d3436);
+            font-size: 1.1rem;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .booking-details {
+            background: var(--card-bg-light, rgba(248, 249, 250, 0.8));
+            padding: 1.25rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color, rgba(223, 230, 233, 0.3));
+        }
+
+        .booking-info {
+            color: var(--text-secondary, #636e72);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .booking-details i {
+            color: var(--accent-color, #e17055);
+            font-size: 0.9rem;
+            min-width: 16px;
+        }
+
+        .special-requests {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-light, rgba(223, 230, 233, 0.5));
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .requests-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary, #636e72);
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .requests-text {
+            color: var(--text-primary, #2d3436);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Booking actions */
+        .booking-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .booking-actions button {
+            flex: 1;
+        }
+
+        /* Empty states */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            animation: fadeSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--icon-color, rgba(223, 230, 233, 0.5));
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .empty-state h3 {
+            color: var(--text-secondary, #636e72);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            color: var(--text-light, #b2bec3);
+            margin-bottom: 1.5rem;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Status badges */
+        .booking-status {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .status-pending {
+            background: linear-gradient(to right, #ffc107, #ff9800);
+            color: #000;
+        }
+
+        .status-confirmed {
+            background: linear-gradient(to right, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .status-cancelled {
+            background: linear-gradient(to right, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .status-completed {
+            background: linear-gradient(to right, #607d8b, #455a64);
+            color: white;
+        }
+
+        /* Button styles */
+        .confirm-btn {
+            background: linear-gradient(to right, var(--success-color, #00b894), var(--success-dark, #00a085));
+        }
+
+        .decline-btn {
+            background: linear-gradient(to right, var(--warning-color, #fdcb6e), var(--warning-dark, #f39c12));
+        }
+
+        .cancel-btn {
+            background: linear-gradient(to right, var(--error-dark, #d63031), var(--error-color, #e17055));
+        }
+
+        /* Small text */
+        .small {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        /* Retry button */
+        .retry-btn {
+            margin-top: 1rem;
+        }
+
+        /* Filter section */
+        .filter-section {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 1.5rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 4px 16px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .filter-section h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-primary, #2d3436);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Dark mode adjustments */
+        @media (prefers-color-scheme: dark) {
+            .stat-card {
+                background: rgba(40, 40, 40, 0.6);
+            }
+
+            .empty-state i {
+                background: linear-gradient(135deg, #2d3436 0%, #1a1a1a 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .status-pending {
+                background: linear-gradient(to right, #ffb300, #ff8f00);
+                color: #000;
+            }
+
+            .status-confirmed {
+                background: linear-gradient(to right, #388e3c, #2e7d32);
+            }
+
+            .status-cancelled {
+                background: linear-gradient(to right, #d32f2f, #b71c1c);
+            }
+
+            .status-completed {
+                background: linear-gradient(to right, #546e7a, #455a64);
+            }
+
+            .booking-details {
+                background: rgba(40, 40, 40, 0.6);
+            }
+
+            .filter-section {
+                background: rgba(40, 40, 40, 0.75);
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+
+            .restaurant-filter-info {
+                background: rgba(225, 112, 85, 0.2);
+            }
+        }
+
+        /* Responsive design */
+        @media (min-width: 768px) {
+            .dashboard-title {
+                font-size: 2rem;
+            }
+
+            .dashboard-stats {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+
+            .booking-actions {
+                flex-direction: row;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -16,15 +367,28 @@
             <a href="index.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </nav>
         
-        <h2><i class="fas fa-user-tie"></i> Restaurant Owner Dashboard</h2>
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">
+                <i class="fas fa-user-tie"></i> Restaurant Owner Dashboard
+            </h1>
+            <p class="dashboard-subtitle">
+                Manage your restaurants and monitor booking activities in real-time
+            </p>
+        </div>
         
-        
+        <!-- Stats Section -->
+        <div class="dashboard-stats" id="stats-container">
+            <!-- Stats will be dynamically added here if needed -->
+        </div>
         
         <!-- Bookings Section -->
         <div id="bookings-container">
-        <br>
-            <h3>Recent Bookings</h3>
-            <div id="bookings"></div>
+            <h3 class="section-title">
+                <i class="fas fa-calendar-alt"></i> Recent Bookings
+            </h3>
+            <div id="bookings">
+                <!-- Bookings will be dynamically added here -->
+            </div>
         </div>
         
     </div>
