@@ -34,16 +34,31 @@
         
         <!-- Filter Section -->
         <div class="filter-section">
-            <p style="color: #636e72; margin-bottom: 0.75rem; font-weight: 600; font-size: 0.9rem;">Filter by status:</p>
-            <div class="filter-buttons">
-                <button class="filter-btn active" onclick="filterBookings('all')">All</button>
-                <button class="filter-btn" onclick="filterBookings('PENDING')">Pending</button>
-                <button class="filter-btn" onclick="filterBookings('CONFIRMED')">Confirmed</button>
-                <button class="filter-btn" onclick="filterBookings('CANCELLED')">Cancelled</button>
-                <button class="filter-btn" onclick="filterBookings('COMPLETED')">Completed</button>
-            </div>
-        </div>
+    <p>Filter by status:</p>
+    <div class="filter-buttons">
+        <button class="filter-btn active" onclick="filterBookings('UPCOMING')">
+            Upcoming
+        </button>
+        <button class="filter-btn" onclick="filterBookings('PENDING')">
+            Pending
+        </button>
+        <button class="filter-btn" onclick="filterBookings('CONFIRMED')">
+            Confirmed
+        </button>
+        <button class="filter-btn" onclick="filterBookings('COMPLETED')">
+            Completed
+        </button>
+        <button class="filter-btn" onclick="filterBookings('CANCELLED')">
+            Cancelled
+        </button>
+        <button class="filter-btn" onclick="filterBookings('ALL')">
+            All
+        </button>
+    </div>
+</div>
+
         
+        <!-- Bookings Container -->
         <div id="bookings-list">
             <div class="loading">
                 <i class="fas fa-spinner fa-spin"></i> Loading your bookings...
@@ -54,20 +69,23 @@
     <!-- Cancel Booking Modal -->
     <div id="cancel-modal" class="modal hidden">
         <div class="modal-content">
-            <h3 style="color: #e17055; margin-bottom: 1rem;">Cancel Booking</h3>
-            <p style="color: #636e72; margin-bottom: 1rem;">Are you sure you want to cancel this booking?</p>
-            <div class="booking-card" style="margin-bottom: 1.5rem;">
-                <p id="booking-details" style="color: #636e72; line-height: 1.5;"></p>
+            <h3>Cancel Booking</h3>
+            <p>Are you sure you want to cancel this booking?</p>
+            
+            <div id="booking-details" class="booking-modal-info">
+                <!-- Booking details will be inserted here by JavaScript -->
             </div>
+            
             <div class="form-group">
                 <label for="cancel-reason">Reason for cancellation (optional):</label>
-                <textarea id="cancel-reason" rows="3" placeholder="Please provide a reason..." style="min-height: 100px; resize: vertical;"></textarea>
+                <textarea id="cancel-reason" rows="3" placeholder="Please provide a reason..."></textarea>
             </div>
+            
             <div class="modal-buttons">
-                <button onclick="confirmCancel()" style="background: linear-gradient(to right, #d63031, #e17055);">
+                <button onclick="confirmCancel()" class="cancel-btn">
                     <i class="fas fa-times-circle"></i> Cancel Booking
                 </button>
-                <button onclick="closeCancelModal()" style="background: linear-gradient(to right, #636e72, #2d3436);">
+                <button onclick="closeCancelModal()" class="contact-btn">
                     <i class="fas fa-times"></i> Keep Booking
                 </button>
             </div>
