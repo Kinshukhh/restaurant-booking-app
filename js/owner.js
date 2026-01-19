@@ -49,7 +49,7 @@ auth.onAuthStateChanged(async (user) => {
                 bookingsContainer.innerHTML = `
                     <div class="filter-section">
                         <h3>Restaurant Bookings</h3>
-                        <p style="color: var(--text-secondary, #636e72);">Showing bookings for selected restaurant</p>
+                        <p class="restaurant-filter-info">Showing bookings for selected restaurant</p>
                     </div>
                     <div id="bookings"></div>
                 `;
@@ -66,7 +66,6 @@ auth.onAuthStateChanged(async (user) => {
         showError("Authentication error. Please login again.");
     }
 });
-
 
 function loadBookings() {
     try {
@@ -160,9 +159,9 @@ function loadBookings() {
                         </div>
                         
                         <div class="booking-details">
-                            <p><i class="fas fa-calendar-day"></i> ${bookingDate} | ${bookingTime}</p>
-                            <p><i class="fas fa-user-friends"></i> ${booking.guests || 2} guests</p>
-                            <p><i class="fas fa-user"></i> ${booking.userEmail || "Unknown user"}</p>
+                            <p class="booking-info"><i class="fas fa-calendar-day"></i> ${bookingDate} | ${bookingTime}</p>
+                            <p class="booking-info"><i class="fas fa-user-friends"></i> ${booking.guests || 2} guests</p>
+                            <p class="booking-info"><i class="fas fa-user"></i> ${booking.userEmail || "Unknown user"}</p>
                             
                             ${booking.specialRequests ? `
                                 <div class="special-requests">
@@ -248,13 +247,13 @@ window.showConfirmModal = function(bookingId, status, message) {
     const modal = document.createElement('div');
     modal.className = 'modal confirm-modal';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <div style="margin-bottom: 1.5rem;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--accent-color, #e17055), var(--accent-dark, #d63031)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                    <i class="fas fa-question-circle" style="color: white; font-size: 1.5rem;"></i>
+        <div class="modal-content confirmation-modal-content">
+            <div class="confirmation-body">
+                <div class="confirmation-icon ${status === 'CONFIRMED' ? 'info' : 'warning'}">
+                    <i class="fas fa-question-circle"></i>
                 </div>
-                <h3 style="color: var(--text-primary, #2d3436); margin-bottom: 0.5rem; font-weight: 600;">Confirm Action</h3>
-                <p style="color: var(--text-secondary, #636e72); line-height: 1.5;">${message}</p>
+                <h3 class="confirmation-title">Confirm Action</h3>
+                <p class="confirmation-message">${message}</p>
             </div>
             
             <div class="modal-buttons">
@@ -262,8 +261,7 @@ window.showConfirmModal = function(bookingId, status, message) {
                         class="${status === 'CONFIRMED' ? 'confirm-btn' : 'cancel-btn'}">
                     <i class="fas fa-${status === 'CONFIRMED' ? 'check' : 'times'}"></i> ${status === 'CONFIRMED' ? 'Confirm' : status === 'CANCELLED' ? 'Decline' : 'Update'}
                 </button>
-                <button onclick="this.closest('.modal').remove()" 
-                        style="background: linear-gradient(to right, var(--text-secondary, #636e72), var(--text-primary, #2d3436));">
+                <button onclick="this.closest('.modal').remove()" class="cancel-secondary-btn">
                     <i class="fas fa-times"></i> Cancel
                 </button>
             </div>
@@ -316,16 +314,16 @@ window.showDeleteConfirm = function(restaurantId, restaurantName) {
     const modal = document.createElement('div');
     modal.className = 'modal delete-modal';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <div style="margin-bottom: 1.5rem;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--error-dark, #d63031), var(--error-color, #e17055)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                    <i class="fas fa-exclamation-triangle" style="color: white; font-size: 1.5rem;"></i>
+        <div class="modal-content delete-modal-content">
+            <div class="confirmation-body">
+                <div class="confirmation-icon warning">
+                    <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                <h3 style="color: var(--error-dark, #d63031); margin-bottom: 0.5rem; font-weight: 600;">Delete Restaurant</h3>
-                <p style="color: var(--text-secondary, #636e72); line-height: 1.5; margin-bottom: 0.5rem;">
+                <h3 class="confirmation-title delete-title">Delete Restaurant</h3>
+                <p class="confirmation-message">
                     Are you sure you want to delete <strong>"${restaurantName}"</strong>?
                 </p>
-                <p style="color: var(--error-color, #e17055); font-size: 0.9rem; font-weight: 500;">
+                <p class="delete-warning">
                     ⚠️ All bookings will be cancelled.
                 </p>
             </div>
@@ -335,8 +333,7 @@ window.showDeleteConfirm = function(restaurantId, restaurantName) {
                         class="delete-btn">
                     <i class="fas fa-trash"></i> Delete Restaurant
                 </button>
-                <button onclick="this.closest('.modal').remove()" 
-                        style="background: linear-gradient(to right, var(--text-secondary, #636e72), var(--text-primary, #2d3436));">
+                <button onclick="this.closest('.modal').remove()" class="cancel-secondary-btn">
                     <i class="fas fa-times"></i> Keep Restaurant
                 </button>
             </div>
@@ -557,7 +554,7 @@ function addOwnerDashboardStyles() {
                 border: 1px solid var(--border-color, rgba(223, 230, 233, 0.3));
             }
             
-            .booking-details p {
+            .booking-info {
                 color: var(--text-secondary, #636e72);
                 font-size: 0.9rem;
                 margin-bottom: 0.75rem;
@@ -757,6 +754,96 @@ function addOwnerDashboardStyles() {
                 border: 1px solid rgba(255, 255, 255, 0.3);
             }
             
+            /* Confirmation modal specific styles */
+            .confirmation-modal-content,
+            .delete-modal-content {
+                max-width: 400px;
+                text-align: center;
+            }
+            
+            .confirmation-body {
+                margin-bottom: 1.5rem;
+            }
+            
+            .confirmation-icon {
+                width: 60px;
+                height: 60px;
+                background: linear-gradient(135deg, var(--accent-color, #e17055), var(--accent-dark, #d63031));
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 1rem;
+            }
+            
+            .confirmation-icon.info {
+                background: linear-gradient(135deg, var(--accent-color, #e17055), var(--accent-dark, #d63031));
+            }
+            
+            .confirmation-icon.warning {
+                background: linear-gradient(135deg, #ffc107, #ff9800);
+                color: #000;
+            }
+            
+            .confirmation-title {
+                color: var(--text-primary, #2d3436);
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                font-size: 1.25rem;
+            }
+            
+            .delete-title {
+                color: var(--error-dark, #d63031);
+            }
+            
+            .confirmation-message {
+                color: var(--text-secondary, #636e72);
+                line-height: 1.5;
+                margin-bottom: 0.5rem;
+            }
+            
+            .delete-warning {
+                color: var(--error-color, #e17055);
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin: 0;
+            }
+            
+            .modal-buttons {
+                display: flex;
+                gap: 0.75rem;
+                margin-top: 1.5rem;
+                flex-direction: column;
+            }
+            
+            .modal-buttons button {
+                width: 100%;
+            }
+            
+            .cancel-secondary-btn {
+                background: linear-gradient(to right, var(--text-secondary, #636e72), var(--text-primary, #2d3436));
+                color: white;
+            }
+            
+            /* Restaurant filter info */
+            .restaurant-filter-info {
+                color: var(--text-secondary, #636e72);
+                margin: 0.5rem 0 0 0;
+                font-size: 0.9rem;
+            }
+            
+            /* Small text */
+            .small {
+                font-size: 0.85rem;
+                opacity: 0.8;
+                margin: 0;
+            }
+            
+            /* Retry button */
+            .retry-btn {
+                margin-top: 1rem;
+            }
+            
             /* Dark mode variables */
             @media (prefers-color-scheme: dark) {
                 :root {
@@ -813,6 +900,19 @@ function addOwnerDashboardStyles() {
                     background: rgba(30, 30, 30, 0.9);
                     border: 1px solid rgba(255, 255, 255, 0.1);
                 }
+                
+                .confirmation-icon.info {
+                    background: linear-gradient(135deg, var(--accent-color, #e17055), var(--accent-dark, #d63031));
+                }
+                
+                .confirmation-icon.warning {
+                    background: linear-gradient(135deg, #ffc107, #ff9800);
+                    color: #000;
+                }
+                
+                .cancel-secondary-btn {
+                    background: linear-gradient(to right, var(--text-secondary, rgba(255, 255, 255, 0.7)), var(--text-primary, #ffffff));
+                }
             }
             
             /* Responsive */
@@ -834,6 +934,15 @@ function addOwnerDashboardStyles() {
                 .confirm-modal .modal-content,
                 .delete-modal .modal-content {
                     max-width: 400px;
+                }
+                
+                .modal-buttons {
+                    flex-direction: row;
+                }
+                
+                .modal-buttons button {
+                    width: auto;
+                    flex: 1;
                 }
             }
             
