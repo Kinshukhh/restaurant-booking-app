@@ -4,8 +4,353 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurants - TableBook</title>
-    <link rel="stylesheet" href="./css/style.css?v=2">
+    <link rel="stylesheet" href="./css/style.css?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styles for client.html */
+        .restaurant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .restaurant-title {
+            flex: 1;
+        }
+
+        .restaurant-title h3 {
+            margin: 0 0 8px 0;
+            color: var(--text-primary, #2d3436);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .cuisine-badge {
+            display: inline-block;
+            background: var(--card-bg-light, #f0f0f0);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--text-secondary, #636e72);
+            margin-bottom: 8px;
+        }
+
+        .cuisine-badge i {
+            margin-right: 4px;
+            color: var(--accent-color, #e17055);
+        }
+
+        .price-range {
+            text-align: right;
+        }
+
+        .price-tag {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--success-color, #00b894);
+        }
+
+        .restaurant-description {
+            margin: 10px 0;
+            color: var(--text-secondary, #636e72);
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .restaurant-distance {
+            margin: 5px 0;
+            color: var(--text-secondary, #636e72);
+            font-size: 0.9rem;
+        }
+
+        .restaurant-distance i {
+            color: var(--accent-color, #e17055);
+            margin-right: 5px;
+        }
+
+        .restaurant-no-location {
+            margin: 5px 0;
+            color: var(--text-light, #b2bec3);
+            font-size: 0.9rem;
+        }
+
+        .restaurant-no-location i {
+            margin-right: 5px;
+            color: var(--text-light, #b2bec3);
+        }
+
+        .restaurant-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .restaurant-image-placeholder {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b2bec3;
+        }
+
+        .restaurant-image-placeholder i {
+            font-size: 48px;
+        }
+
+        .map-btn {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .book-btn {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            width: 100%;
+        }
+
+        /* Filter section styles */
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .filter-title h2 {
+            margin: 0;
+            color: var(--text-primary, #2d3436);
+            font-size: 1.5rem;
+        }
+
+        .restaurant-count {
+            margin: 5px 0 0 0;
+            color: var(--text-secondary, #636e72);
+            font-size: 14px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Location status */
+        .location-status {
+            background: rgba(225, 112, 85, 0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .location-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary, #636e72);
+            font-size: 14px;
+        }
+
+        .location-info i {
+            color: var(--accent-color, #e17055);
+        }
+
+        .location-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .location-actions span {
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #current-location {
+            color: var(--accent-color, #e17055);
+            font-weight: 600;
+        }
+
+        /* No results */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            animation: fadeSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .no-results-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .no-results-icon i {
+            font-size: 36px;
+            color: #6c757d;
+        }
+
+        .no-results h3 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .no-results p {
+            color: #6c757d;
+            max-width: 400px;
+            margin: 0 auto 25px;
+            line-height: 1.5;
+        }
+
+        .clear-filters-btn {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Cuisine filter modal */
+        .cuisine-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cuisine-option {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border: 2px solid var(--border-light, #e0e0e0);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cuisine-option:hover {
+            background: rgba(225, 112, 85, 0.1);
+            border-color: var(--accent-color, #e17055);
+        }
+
+        .cuisine-option i {
+            color: var(--accent-color, #e17055);
+        }
+
+        .show-all-btn {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Address input */
+        .address-input-container {
+            margin-bottom: 20px;
+        }
+
+        .address-input-container input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-light, #e0e0e0);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--card-bg-light, rgba(248, 249, 250, 0.8));
+            color: var(--text-primary, #2d3436);
+        }
+
+        .set-location-btn {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Retry button */
+        .retry-btn {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Dark mode adjustments */
+        @media (prefers-color-scheme: dark) {
+            .restaurant-image-placeholder {
+                background: linear-gradient(135deg, #2d3436 0%, #1a1a1a 100%);
+            }
+
+            .cuisine-badge {
+                background: rgba(255, 255, 255, 0.1);
+                color: rgba(255, 255, 255, 0.7);
+            }
+
+            .no-results-icon {
+                background: linear-gradient(135deg, #2d3436 0%, #1a1a1a 100%);
+            }
+
+            .no-results-icon i {
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            .no-results h3 {
+                color: rgba(255, 255, 255, 0.8);
+            }
+
+            .no-results p {
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            .address-input-container input {
+                background: rgba(50, 50, 50, 0.8);
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+
+            .cuisine-option {
+                border-color: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .cuisine-option:hover {
+                background: rgba(225, 112, 85, 0.2);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -15,18 +360,20 @@
             <a href="map-view.html"><i class="fas fa-map"></i> Map View</a>
             <a href="index.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </nav>
-        
-        <h2>Discover Restaurants</h2>
-        <p style="text-align: center; color: #636e72; margin-bottom: 30px;">
-            Browse and book your next dining experience
-        </p>
+    
+        <div class="header">
+            <h1>Discover Restaurants</h1>
+            <p class="subtitle">Browse and book your next dining experience</p>
+        </div>
         
         <div id="loading" class="loading">
             <i class="fas fa-spinner fa-spin"></i> Loading restaurants...
         </div>
         
-        <div id="restaurants-container"></div>
-        
+        <div id="restaurants-container">
+            <!-- Filter section and restaurants will be dynamically added here -->
+        </div>
+        </div>
         <!-- Booking Modal -->
         <div id="booking-modal" class="modal hidden">
             <div class="modal-content">
@@ -47,11 +394,17 @@
                     <label for="special-requests">Special Requests (Optional)</label>
                     <textarea id="special-requests" rows="3" placeholder="Any special requests..."></textarea>
                 </div>
-                <button onclick="confirmBooking()">Confirm Booking</button>
-                <button onclick="closeModal()" style="background: #636e72; color: white;">Cancel</button>
+                <div class="modal-buttons">
+                    <button onclick="confirmBooking()" class="confirm-btn">
+                        <i class="fas fa-calendar-check"></i> Confirm Booking
+                    </button>
+                    <button onclick="closeModal()" class="cancel-btn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
+
 
     <script type="module" src="./js/client.js"></script>
 </body>
