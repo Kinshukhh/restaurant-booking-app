@@ -44,6 +44,72 @@ auth.onAuthStateChanged(async (user) => {
     showError("Authentication error. Please login again.");
   }
 });
+function normalizeDate(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+function getBookingEndTime(dateStr, timeStr) {
+  // timeStr example: "18:00-19:30"
+  if (!dateStr || !timeStr) return null;
+
+  const endTime = timeStr.split('-')[1];
+  if (!endTime) return null;
+
+  const [hours, minutes] = endTime.split(':').map(Number);
+  const bookingDate = new Date(dateStr);
+
+  bookingDate.setHours(hours, minutes, 0, 0);
+  return bookingDate;
+}
+function isOlderThanDays(timestamp, days) {
+  if (!timestamp?.seconds) return false;
+
+  const date = new Date(timestamp.seconds * 1000);
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+
+  return date < cutoff;
+}
+
+
+async function autoCancelExpiredBookings(bookings) {
+  const now = new Date();
+
+  for (const booking of bookings) {
+    if (booking.status !== "PENDING") continue;
+
+    const endDateTime = getBookingEndTime(booking.date, booking.time);
+    if (!endDateTime) continue;
+
+    if (now >= endDateTime) {
+      try {
+        await updateDoc(doc(db, "bookings", booking.id), {
+          status: "CANCELLED",
+          cancelReason: "Auto-cancelled due to no confirmation",
+          cancelledAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+
+        console.log("Auto-cancelled booking:", booking.id);
+      } catch (err) {
+        console.error("Failed to auto-cancel booking:", booking.id, err);
+      }
+    }
+  }
+}
+
+function isUpcomingBooking(booking) {
+  if (!booking.date) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const bookingDate = new Date(booking.date);
+  bookingDate.setHours(0, 0, 0, 0);
+
+  return bookingDate >= today;
+}
 
 function loadMyBookings() {
   console.log("Loading bookings for user:", auth.currentUser.uid);
@@ -61,9 +127,9 @@ function loadMyBookings() {
     
     const container = document.getElementById("bookings-list");
     
-    // Show loading with skeleton animation
+    // Show loading
     container.innerHTML = `
-      <div class="loading" style="animation: fadeSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);">
+      <div class="loading">
         <i class="fas fa-spinner fa-spin"></i> Loading your bookings...
       </div>
     `;
@@ -102,8 +168,12 @@ function loadMyBookings() {
           const dateB = b.createdAt ? (b.createdAt.seconds || b.createdAt) : 0;
           return dateB - dateA;
         });
-        
-        displayBookings(bookingsData);
+        autoCancelExpiredBookings(bookingsData);
+
+        const upcomingBookings = bookingsData.filter(isUpcomingBooking);
+
+displayBookings(upcomingBookings);
+
       },
       (error) => {
         console.error("Error in bookings query:", error);
@@ -158,56 +228,60 @@ function loadMyBookings() {
 function displayBookings(bookings) {
   const container = document.getElementById("bookings-list");
   container.innerHTML = "";
-  
-  if (bookings.length === 0) {
+
+  // ✅ Only hide cancelled bookings older than 30 days
+  const visibleBookings = bookings.filter(b => {
+    if (b.status === "CANCELLED") {
+      return !isOlderThanDays(b.cancelledAt, 30);
+    }
+    return true;
+  });
+
+  if (visibleBookings.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <i class="fas fa-search"></i>
+        <i class="fas fa-calendar-times"></i>
         <h3>No Bookings Found</h3>
-        <p>Try changing your filter or browse restaurants to make a booking.</p>
+        <p>No bookings available for this filter.</p>
       </div>
     `;
     return;
   }
-  
-  bookings.forEach((booking, index) => {
-    // Format dates
-    const bookingDate = booking.date ? new Date(booking.date).toLocaleDateString('en-US', {
+
+  visibleBookings.forEach((booking) => {
+    const bookingDateObj = new Date(booking.date);
+    const bookingDate = bookingDateObj.toLocaleDateString('en-US', {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
       day: 'numeric'
-    }) : "Not specified";
-    
+    });
+
     const bookingTime = booking.time || "Not specified";
-    const createdAt = booking.createdAt ? 
-      new Date(booking.createdAt.seconds * 1000).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      }) : "Unknown";
-    
-    // Determine status and styling
-    let statusClass = booking.status?.toLowerCase() || "pending";
+
+    const createdAt = booking.createdAt
+      ? new Date(booking.createdAt.seconds * 1000).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        })
+      : "Unknown";
+
     let statusText = booking.status || "PENDING";
-    
-    // Check if booking is in the past (completed)
+    let statusClass = statusText.toLowerCase();
+
+    // ✅ Mark completed visually
     const today = new Date();
-    const bookingDay = new Date(booking.date);
-    if (booking.status === "CONFIRMED" && bookingDay < today) {
-      statusClass = "completed";
+    today.setHours(0, 0, 0, 0);
+
+    if (booking.status === "CONFIRMED" && bookingDateObj < today) {
       statusText = "COMPLETED";
+      statusClass = "completed";
     }
-    
+
     const card = document.createElement("div");
     card.className = "booking-card";
-    card.style.setProperty('--delay', `${0.1 + (index * 0.1)}s`);
-    
-    // Create status badge with theme-aware classes
-    const statusBadge = document.createElement("span");
-    statusBadge.className = `booking-status status-${statusClass}`;
-    statusBadge.textContent = statusText;
-    
+
     card.innerHTML = `
       <div class="booking-header">
         <div class="booking-info">
@@ -217,64 +291,25 @@ function displayBookings(bookings) {
             <i class="fas fa-clock"></i> ${bookingTime}
           </p>
         </div>
+        <span class="booking-status status-${statusClass}">
+          ${statusText}
+        </span>
       </div>
-      
+
       <div class="booking-details">
-        <div class="booking-stats">
-          <div class="stat-item">
-            <i class="fas fa-user-friends"></i>
-            <div>
-              <div class="stat-label">Guests</div>
-              <div class="stat-value">${booking.guests || 2}</div>
-            </div>
-          </div>
-          
-          <div class="stat-item">
-            <i class="fas fa-envelope"></i>
-            <div>
-              <div class="stat-label">Email</div>
-              <div class="stat-email">${booking.userEmail || auth.currentUser.email}</div>
-            </div>
-          </div>
-        </div>
-        
         <div class="booking-meta-row">
           <i class="fas fa-calendar-plus"></i>
           <span>Booked on ${createdAt}</span>
         </div>
-        
-        ${booking.specialRequests ? `
-          <div class="special-requests">
-            <i class="fas fa-sticky-note"></i>
-            <div>
-              <div class="requests-label">Special Requests</div>
-              <div class="requests-text">${booking.specialRequests}</div>
-            </div>
-          </div>
-        ` : ''}
-        
-        ${booking.cancelReason ? `
-          <div class="cancel-reason">
-            <i class="fas fa-info-circle"></i>
-            <div>
-              <div class="cancel-label">Cancellation Reason</div>
-              <div class="cancel-text">${booking.cancelReason}</div>
-            </div>
-          </div>
-        ` : ''}
       </div>
     `;
-    
-    // Add status badge to header
-    const header = card.querySelector('.booking-header');
-    header.appendChild(statusBadge);
-    
-    // Add action buttons if applicable
+
+    // 🎯 Actions only for active bookings
     if (booking.status === "PENDING" || booking.status === "CONFIRMED") {
       const actions = document.createElement("div");
       actions.className = "restaurant-actions";
       actions.innerHTML = `
-        <button onclick="openCancelModal('${booking.id}', '${booking.restaurantName}', '${bookingDate}', '${booking.time}')" 
+        <button onclick="openCancelModal('${booking.id}', '${booking.restaurantName}', '${bookingDate}', '${bookingTime}')" 
                 class="cancel-btn">
           <i class="fas fa-times-circle"></i> Cancel Booking
         </button>
@@ -285,36 +320,83 @@ function displayBookings(bookings) {
       `;
       card.appendChild(actions);
     }
-    
+
     container.appendChild(card);
   });
 }
 
-window.filterBookings = function(filter) {
+
+window.filterBookings = function (filter) {
   if (!bookingsData.length) return;
-  
-  // Update active filter button
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn =>
+    btn.classList.remove('active')
+  );
   event.target.classList.add('active');
-  
-  let filtered = bookingsData;
-  
-  if (filter !== 'all') {
-    if (filter === 'COMPLETED') {
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let filtered = [];
+
+  switch (filter) {
+
+    case "UPCOMING":
       filtered = bookingsData.filter(b => {
+        if (!b.date) return false;
         const bookingDate = new Date(b.date);
-        const today = new Date();
-        return b.status === "CONFIRMED" && bookingDate < today;
+        bookingDate.setHours(0, 0, 0, 0);
+
+        return (
+          bookingDate >= today &&
+          (b.status === "PENDING" || b.status === "CONFIRMED")
+        );
       });
-    } else {
-      filtered = bookingsData.filter(b => b.status === filter);
-    }
+      break;
+
+    case "PENDING":
+      filtered = bookingsData.filter(b => {
+        if (!b.date) return false;
+        const bookingDate = new Date(b.date);
+        bookingDate.setHours(0, 0, 0, 0);
+
+        return bookingDate >= today && b.status === "PENDING";
+      });
+      break;
+
+    case "CONFIRMED":
+      filtered = bookingsData.filter(b => {
+        if (!b.date) return false;
+        const bookingDate = new Date(b.date);
+        bookingDate.setHours(0, 0, 0, 0);
+
+        return bookingDate >= today && b.status === "CONFIRMED";
+      });
+      break;
+
+    case "COMPLETED":
+      filtered = bookingsData.filter(b => {
+        if (!b.date) return false;
+        const bookingDate = new Date(b.date);
+        bookingDate.setHours(0, 0, 0, 0);
+
+        return bookingDate < today && b.status === "CONFIRMED";
+      });
+      break;
+
+    case "CANCELLED":
+      filtered = bookingsData.filter(b => b.status === "CANCELLED");
+      break;
+
+    case "ALL":
+    default:
+      filtered = bookingsData;
   }
-  
+
   displayBookings(filtered);
 };
+
+
 
 window.openCancelModal = function(bookingId, restaurantName, date, time) {
   currentBookingId = bookingId;
@@ -333,9 +415,6 @@ window.openCancelModal = function(bookingId, restaurantName, date, time) {
   
   modal.classList.remove('hidden');
   document.getElementById('cancel-reason').value = '';
-  
-  // Add fade in animation
-  modal.style.animation = 'fadeIn 0.3s ease-out';
 };
 
 window.confirmCancel = async function() {
@@ -428,9 +507,6 @@ window.contactRestaurant = function(restaurantName) {
   `;
   
   document.body.appendChild(modal);
-  setTimeout(() => {
-    modal.style.animation = 'fadeIn 0.3s ease-out';
-  }, 10);
 };
 
 window.retryLoadBookings = function() {
@@ -464,7 +540,6 @@ function showError(message) {
   const container = document.getElementById("bookings-list");
   const errorDiv = document.createElement("div");
   errorDiv.className = "error-message";
-  errorDiv.style.animation = "fadeSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
   errorDiv.innerHTML = `
     <i class="fas fa-exclamation-circle"></i>
     <div>
@@ -497,454 +572,3 @@ function showToast(message, type = "success") {
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
-
-// Add dynamic CSS for theme-aware components
-function addThemeStyles() {
-  if (!document.querySelector('#theme-styles')) {
-    const style = document.createElement('style');
-    style.id = 'theme-styles';
-    style.textContent = `
-      /* Status badges */
-      .booking-status {
-        display: inline-block;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        white-space: nowrap;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-      }
-      
-      .status-pending {
-        background: linear-gradient(to right, #ffc107, #ff9800);
-        color: #000;
-      }
-      
-      .status-confirmed {
-        background: linear-gradient(to right, #4CAF50, #45a049);
-        color: white;
-      }
-      
-      .status-cancelled {
-        background: linear-gradient(to right, #f44336, #d32f2f);
-        color: white;
-      }
-      
-      .status-completed {
-        background: linear-gradient(to right, #607d8b, #455a64);
-        color: white;
-      }
-      
-      /* Booking card internal styles */
-      .booking-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-      }
-      
-      .booking-info {
-        flex: 1;
-      }
-      
-      .booking-info h3 {
-        margin: 0 0 0.5rem 0;
-        color: var(--text-primary, #2d3436);
-        font-size: 1.1rem;
-        font-weight: 700;
-        letter-spacing: -0.01em;
-      }
-      
-      .booking-meta {
-        margin: 0;
-        color: var(--text-secondary, #636e72);
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      
-      .booking-meta i {
-        color: var(--accent-color, #e17055);
-      }
-      
-      .booking-details {
-        background: var(--card-bg-light, rgba(248, 249, 250, 0.8));
-        padding: 1.25rem;
-        border-radius: 16px;
-        margin-bottom: 1rem;
-        border: 1px solid var(--border-color, rgba(223, 230, 233, 0.3));
-      }
-      
-      .booking-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 1rem;
-        margin-bottom: 0.75rem;
-      }
-      
-      .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      
-      .stat-item i {
-        color: var(--accent-color, #e17055);
-        font-size: 1rem;
-      }
-      
-      .stat-label {
-        font-size: 0.85rem;
-        color: var(--text-secondary, #636e72);
-        margin-bottom: 0.25rem;
-      }
-      
-      .stat-value {
-        font-weight: 700;
-        color: var(--text-primary, #2d3436);
-        font-size: 1.1rem;
-      }
-      
-      .stat-email {
-        font-weight: 500;
-        color: var(--text-primary, #2d3436);
-        font-size: 0.9rem;
-        word-break: break-all;
-      }
-      
-      .booking-meta-row {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding-top: 0.75rem;
-        border-top: 1px solid var(--border-light, rgba(223, 230, 233, 0.5));
-        color: var(--text-secondary, #636e72);
-        font-size: 0.85rem;
-        font-weight: 500;
-      }
-      
-      .booking-meta-row i {
-        color: var(--accent-color, #e17055);
-        font-size: 0.9rem;
-      }
-      
-      .special-requests {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--border-light, rgba(223, 230, 233, 0.5));
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-      
-      .special-requests i {
-        color: var(--accent-color, #e17055);
-        font-size: 0.9rem;
-        margin-top: 0.2rem;
-      }
-      
-      .requests-label {
-        font-size: 0.85rem;
-        color: var(--text-secondary, #636e72);
-        margin-bottom: 0.25rem;
-        font-weight: 500;
-      }
-      
-      .requests-text {
-        color: var(--text-primary, #2d3436);
-        font-size: 0.9rem;
-        line-height: 1.4;
-      }
-      
-      .cancel-reason {
-        margin-top: 1rem;
-        padding: 1rem;
-        background: var(--error-bg-light, rgba(248, 215, 218, 0.3));
-        border-radius: 12px;
-        border: 1px solid var(--error-border, rgba(245, 198, 203, 0.5));
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-      
-      .cancel-reason i {
-        color: var(--error-color, #721c24);
-        font-size: 0.9rem;
-        margin-top: 0.1rem;
-      }
-      
-      .cancel-label {
-        font-size: 0.85rem;
-        color: var(--error-color, #721c24);
-        margin-bottom: 0.25rem;
-        font-weight: 600;
-      }
-      
-      .cancel-text {
-        color: var(--error-color, #721c24);
-        font-size: 0.85rem;
-        line-height: 1.4;
-      }
-      
-      /* Modal styles */
-      .booking-modal-info {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem;
-        background: var(--accent-light, rgba(225, 112, 85, 0.1));
-        border-radius: 12px;
-        margin-bottom: 1rem;
-      }
-      
-      .booking-modal-info i {
-        color: var(--accent-color, #e17055);
-        font-size: 1.2rem;
-      }
-      
-      .booking-modal-name {
-        font-weight: 600;
-        color: var(--text-primary, #2d3436);
-        margin-bottom: 0.25rem;
-      }
-      
-      .booking-modal-time {
-        color: var(--text-secondary, #636e72);
-        font-size: 0.9rem;
-      }
-      
-      /* Contact modal */
-      .contact-modal {
-        max-width: 400px;
-        text-align: center;
-      }
-      
-      .modal-header {
-        margin-bottom: 1.5rem;
-      }
-      
-      .modal-icon {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, var(--accent-color, #e17055), var(--accent-dark, #d63031));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1rem;
-      }
-      
-      .modal-icon i {
-        color: white;
-        font-size: 1.5rem;
-      }
-      
-      .contact-steps {
-        text-align: left;
-        background: var(--card-bg-light, rgba(248, 249, 250, 0.8));
-        padding: 1.25rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
-      }
-      
-      .contact-step {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border-light, rgba(223, 230, 233, 0.5));
-      }
-      
-      .contact-step:last-child {
-        margin-bottom: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-      }
-      
-      .contact-step i {
-        color: var(--accent-color, #e17055);
-        font-size: 1.1rem;
-      }
-      
-      .step-title {
-        font-weight: 600;
-        color: var(--text-primary, #2d3436);
-        font-size: 0.95rem;
-      }
-      
-      .step-desc {
-        color: var(--text-secondary, #636e72);
-        font-size: 0.85rem;
-      }
-      
-      /* Empty states */
-      .empty-state {
-        text-align: center;
-        padding: 3rem 1rem;
-        animation: fadeSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      
-      .empty-state i {
-        font-size: 3rem;
-        color: var(--icon-color, rgba(223, 230, 233, 0.5));
-        margin-bottom: 1rem;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      
-      .empty-state h3 {
-        color: var(--text-secondary, #636e72);
-        margin-bottom: 0.75rem;
-        font-weight: 600;
-      }
-      
-      .empty-state p {
-        color: var(--text-light, #b2bec3);
-        margin-bottom: 1.5rem;
-        max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-      
-      .browse-btn {
-        background: linear-gradient(to right, var(--accent-color, #e17055), var(--accent-dark, #d63031));
-        width: auto;
-        display: inline-block;
-      }
-      
-      /* Toast */
-      .toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 1rem 1.5rem;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-        z-index: 10000;
-        animation: fadeSlideUp 0.3s ease-out;
-        border: 1px solid;
-      }
-      
-      .toast-success {
-        background: var(--success-bg, rgba(212, 237, 218, 0.95));
-        color: var(--success-color, #155724);
-        border-color: var(--success-border, rgba(195, 230, 203, 0.5));
-      }
-      
-      .toast-error {
-        background: var(--error-bg, rgba(248, 215, 218, 0.95));
-        color: var(--error-color, #721c24);
-        border-color: var(--error-border, rgba(245, 198, 203, 0.5));
-      }
-      
-      /* Button states */
-      .cancel-btn {
-        background: linear-gradient(to right, var(--error-dark, #d63031), var(--accent-color, #e17055));
-      }
-      
-      .contact-btn {
-        background: linear-gradient(to right, var(--text-secondary, #636e72), var(--text-primary, #2d3436));
-      }
-      
-      .success-state {
-        background: linear-gradient(to right, var(--success-color, #4CAF50), var(--success-dark, #45a049));
-      }
-      
-      .retry-btn {
-        margin-top: 1rem;
-      }
-      
-      /* Small text */
-      .small {
-        font-size: 0.85rem;
-        opacity: 0.8;
-        margin: 0;
-      }
-      
-      /* Dark mode variables */
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --text-primary: #ffffff;
-          --text-secondary: rgba(255, 255, 255, 0.7);
-          --text-light: rgba(255, 255, 255, 0.5);
-          --accent-color: #e17055;
-          --accent-dark: #d63031;
-          --accent-light: rgba(225, 112, 85, 0.2);
-          --card-bg-light: rgba(40, 40, 40, 0.8);
-          --border-color: rgba(255, 255, 255, 0.1);
-          --border-light: rgba(255, 255, 255, 0.05);
-          --icon-color: rgba(255, 255, 255, 0.1);
-          --error-color: #f5c6cb;
-          --error-bg: rgba(248, 215, 218, 0.2);
-          --error-bg-light: rgba(248, 215, 218, 0.1);
-          --error-border: rgba(245, 198, 203, 0.3);
-          --error-dark: #d32f2f;
-          --success-color: #4CAF50;
-          --success-dark: #45a049;
-          --success-bg: rgba(212, 237, 218, 0.2);
-          --success-border: rgba(195, 230, 203, 0.3);
-        }
-        
-        .booking-details {
-          background: rgba(40, 40, 40, 0.6);
-        }
-        
-        .contact-steps {
-          background: rgba(40, 40, 40, 0.6);
-        }
-        .contact-btn {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.18),
-    rgba(255, 255, 255, 0.08)
-  );
-  color: #ffffff;
-}
-
-        .empty-state i {
-          background: linear-gradient(135deg, #2d3436 0%, #1a1a1a 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        
-        .status-pending {
-          background: linear-gradient(to right, #ffb300, #ff8f00);
-          color: #000;
-        }
-        
-        .status-confirmed {
-          background: linear-gradient(to right, #388e3c, #2e7d32);
-        }
-        
-        .status-cancelled {
-          background: linear-gradient(to right, #d32f2f, #b71c1c);
-        }
-        
-        .status-completed {
-          background: linear-gradient(to right, #546e7a, #455a64);
-        }
-      }
-      
-      @keyframes fadeSlideUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-}
-
-// Initialize theme styles
-addThemeStyles();
